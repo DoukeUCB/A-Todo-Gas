@@ -1,15 +1,7 @@
-import sumar from "./sumador";
+import { realizarSumaUseCase } from "./config/di";
+import { WebUIAdapter } from "./adapters/primary/web/WebUIAdapter";
 
-const first = document.querySelector("#primer-numero");
-const second = document.querySelector("#segundo-numero");
-const form = document.querySelector("#form");
-const div = document.querySelector("#resultado-div");
-
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-
-  const firstNumber = Number.parseInt(first.value);
-  const secondNumber = Number.parseInt(second.value);
-
-  div.innerHTML = "<p>" + sumar(firstNumber, secondNumber) + "</p>";
-});
+// Inicializar el adaptador de UI con el caso de uso
+const webAdapter = new WebUIAdapter(realizarSumaUseCase);
+// Iniciar la aplicación
+webAdapter.init();

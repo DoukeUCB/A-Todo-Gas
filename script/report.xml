@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="3" failures="0" errors="0" time="0.7">
-  <testsuite name="RegistrarGasolineraUseCase" errors="0" failures="0" skipped="0" timestamp="2025-04-29T12:58:53" time="0.357" tests="3">
+<testsuites name="jest tests" tests="9" failures="0" errors="0" time="1.384">
+  <testsuite name="RegistrarNivelCombustibleUseCase" errors="0" failures="0" skipped="0" timestamp="2025-04-29T13:52:02" time="0.692" tests="6">
+    <testcase classname="RegistrarNivelCombustibleUseCase debería registrar un nivel de combustible correctamente" name="RegistrarNivelCombustibleUseCase debería registrar un nivel de combustible correctamente" time="0.006">
+    </testcase>
+    <testcase classname="RegistrarNivelCombustibleUseCase debería rechazar un nivel de combustible con porcentaje mayor a 100" name="RegistrarNivelCombustibleUseCase debería rechazar un nivel de combustible con porcentaje mayor a 100" time="0.018">
+    </testcase>
+    <testcase classname="RegistrarNivelCombustibleUseCase debería rechazar un nivel de combustible con porcentaje negativo" name="RegistrarNivelCombustibleUseCase debería rechazar un nivel de combustible con porcentaje negativo" time="0.002">
+    </testcase>
+    <testcase classname="RegistrarNivelCombustibleUseCase debería rechazar un nivel de combustible para un surtidor inexistente" name="RegistrarNivelCombustibleUseCase debería rechazar un nivel de combustible para un surtidor inexistente" time="0.001">
+    </testcase>
+    <testcase classname="RegistrarNivelCombustibleUseCase debería obtener el historial de niveles de combustible para un surtidor" name="RegistrarNivelCombustibleUseCase debería obtener el historial de niveles de combustible para un surtidor" time="0.002">
+    </testcase>
+    <testcase classname="RegistrarNivelCombustibleUseCase debería obtener el último nivel registrado para un surtidor" name="RegistrarNivelCombustibleUseCase debería obtener el último nivel registrado para un surtidor" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="RegistrarGasolineraUseCase" errors="0" failures="0" skipped="0" timestamp="2025-04-29T13:52:03" time="0.138" tests="3">
     <testcase classname="RegistrarGasolineraUseCase debería registrar una gasolinera correctamente" name="RegistrarGasolineraUseCase debería registrar una gasolinera correctamente" time="0.004">
     </testcase>
-    <testcase classname="RegistrarGasolineraUseCase debería rechazar una gasolinera con datos incompletos" name="RegistrarGasolineraUseCase debería rechazar una gasolinera con datos incompletos" time="0.007">
+    <testcase classname="RegistrarGasolineraUseCase debería rechazar una gasolinera con datos incompletos" name="RegistrarGasolineraUseCase debería rechazar una gasolinera con datos incompletos" time="0.011">
     </testcase>
     <testcase classname="RegistrarGasolineraUseCase debería verificar si el usuario ya tiene una gasolinera registrada" name="RegistrarGasolineraUseCase debería verificar si el usuario ya tiene una gasolinera registrada" time="0.001">
     </testcase>

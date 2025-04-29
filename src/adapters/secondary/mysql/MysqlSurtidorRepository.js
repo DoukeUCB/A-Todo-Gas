@@ -11,14 +11,19 @@ export class MysqlSurtidorRepository extends SurtidorRepository {
     
     try {
       const [rows] = await this.connection.execute(query, [id]);
-      
       if (rows.length === 0) {
         return null;
       }
       
-      return rows[0];
+      const dispenser = rows[0];
+      return {
+        id: dispenser.id,
+        stationId: dispenser.station_id,
+        identifier: dispenser.identifier,
+        description: dispenser.description
+      };
     } catch (error) {
-      throw new Error(`Error al buscar surtidor: ${error.message}`);
+      throw new Error(`Error al buscar surtidor por ID: ${error.message}`);
     }
   }
 
@@ -27,9 +32,29 @@ export class MysqlSurtidorRepository extends SurtidorRepository {
     
     try {
       const [rows] = await this.connection.execute(query, [stationId]);
-      return rows;
+      return rows.map(dispenser => ({
+        id: dispenser.id,
+        stationId: dispenser.station_id,
+        identifier: dispenser.identifier,
+        description: dispenser.description
+      }));
     } catch (error) {
       throw new Error(`Error al buscar surtidores por estación: ${error.message}`);
+    }
+  }
+
+  async save(surtidor) {
+    const query = 'INSERT INTO dispensers (station_id, identifier, description) VALUES (?, ?, ?)';
+    const values = [surtidor.stationId, surtidor.identifier, surtidor.description];
+    
+    try {
+      const [result] = await this.connection.execute(query, values);
+      return {
+        id: result.insertId,
+        ...surtidor
+      };
+    } catch (error) {
+      throw new Error(`Error al guardar el surtidor: ${error.message}`);
     }
   }
 }

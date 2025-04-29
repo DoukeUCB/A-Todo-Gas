@@ -5,7 +5,7 @@ const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'quickGasonline_db',
+  database: process.env.DB_NAME || 'atodogas_db',
 };
 
 // Pool de conexiones para reutilización

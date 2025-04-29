@@ -2,4 +2,4 @@
 import './presenter.js';
 
 // Inicialización global
-console.log('Aplicación A-Todo-Gas iniciada');
+console.log('Aplicación QuickGasoline iniciada');

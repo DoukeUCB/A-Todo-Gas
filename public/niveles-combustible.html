@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Todo Gas - Niveles de Combustible</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/niveles-combustible.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gestión de Niveles de Combustible</h1>
+        
+        <!-- Selector de gasolinera y surtidor -->
+        <div class="card">
+            <h2>Seleccionar Surtidor</h2>
+            <div class="form-group">
+                <label for="select-gasolinera">Gasolinera:</label>
+                <select id="select-gasolinera" required>
+                    <option value="">Seleccione una gasolinera</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="select-surtidor">Surtidor:</label>
+                <select id="select-surtidor" required>
+                    <option value="">Seleccione un surtidor</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Registro de nivel de combustible -->
+        <div class="card">
+            <h2>Registrar Nivel de Combustible</h2>
+            <form id="form-nivel-combustible">
+                <div class="form-group">
+                    <label for="porcentaje-nivel">Nivel de combustible (%):</label>
+                    <input type="range" id="porcentaje-nivel" min="0" max="100" value="50" step="1">
+                    <span id="valor-porcentaje">50%</span>
+                </div>
+                <button type="submit" class="btn-primary">Registrar Nivel</button>
+            </form>
+            <div id="mensaje-resultado" class="mensaje"></div>
+        </div>
+        
+        <!-- Historial de niveles -->
+        <div class="card">
+            <h2>Historial de Niveles</h2>
+            <div class="nivel-chart-container">
+                <canvas id="historial-chart"></canvas>
+            </div>
+            <table id="tabla-historial" class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Nivel (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Aquí se cargarán los datos dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module" src="../src/nivelesCombustible.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

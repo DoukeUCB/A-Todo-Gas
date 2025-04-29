@@ -1,5 +1,4 @@
 import { NivelCombustibleRepository } from "../../../application/ports/output/NivelCombustibleRepository.js";
-import { NivelCombustible } from "../../../domain/entities/NivelCombustible.js";
 
 export class MysqlNivelCombustibleRepository extends NivelCombustibleRepository {
   constructor(connection) {
@@ -8,18 +7,21 @@ export class MysqlNivelCombustibleRepository extends NivelCombustibleRepository 
   }
 
   async save(nivelCombustible) {
-    const query = 'INSERT INTO fuel_levels (dispenser_id, percentage) VALUES (?, ?)';
-    const values = [nivelCombustible.dispenserId, nivelCombustible.percentage];
+    const query = 'INSERT INTO fuel_levels (dispenser_id, percentage, recorded_at) VALUES (?, ?, ?)';
+    const values = [
+      nivelCombustible.dispenserId, 
+      nivelCombustible.percentage, 
+      nivelCombustible.recordedAt
+    ];
     
     try {
       const [result] = await this.connection.execute(query, values);
-      
       return {
         id: result.insertId,
         ...nivelCombustible
       };
     } catch (error) {
-      throw new Error(`Error al guardar nivel de combustible: ${error.message}`);
+      throw new Error(`Error al guardar el nivel de combustible: ${error.message}`);
     }
   }
 
@@ -28,13 +30,12 @@ export class MysqlNivelCombustibleRepository extends NivelCombustibleRepository 
     
     try {
       const [rows] = await this.connection.execute(query, [dispenserId]);
-      
-      return rows.map(row => new NivelCombustible(
-        row.dispenser_id,
-        row.percentage,
-        row.id,
-        row.recorded_at
-      ));
+      return rows.map(row => ({
+        id: row.id,
+        dispenserId: row.dispenser_id,
+        percentage: row.percentage,
+        recordedAt: row.recorded_at
+      }));
     } catch (error) {
       throw new Error(`Error al buscar niveles de combustible: ${error.message}`);
     }
@@ -45,18 +46,17 @@ export class MysqlNivelCombustibleRepository extends NivelCombustibleRepository 
     
     try {
       const [rows] = await this.connection.execute(query, [id]);
-      
       if (rows.length === 0) {
         return null;
       }
       
       const row = rows[0];
-      return new NivelCombustible(
-        row.dispenser_id,
-        row.percentage,
-        row.id,
-        row.recorded_at
-      );
+      return {
+        id: row.id,
+        dispenserId: row.dispenser_id,
+        percentage: row.percentage,
+        recordedAt: row.recorded_at
+      };
     } catch (error) {
       throw new Error(`Error al buscar nivel de combustible: ${error.message}`);
     }

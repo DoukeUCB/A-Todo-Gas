@@ -14,8 +14,6 @@ export class Gasolinera {
     if (!this.userId || !this.name || !this.address || !this.openTime || !this.closeTime) {
       throw new Error("Faltan datos obligatorios para registrar la gasolinera");
     }
-    
-    // Se podrían agregar más validaciones aquí
-    return true;
+        return true;
   }
 }

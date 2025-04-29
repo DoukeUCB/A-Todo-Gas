@@ -1,11 +1,25 @@
 // Configuración de dependencias
-import { RealizarSumaUseCase } from "../application/useCases/realizarSuma";
-import { CalculadoraService } from "../domain/services/CalculadoraService";
-import { LocalStorageAdapter } from "../adapters/secondary/persistencia/LocalStorageAdapter";
+import { getConnection } from './database.js';
+import { MysqlGasolineraRepository } from "../adapters/secondary/mysql/MysqlGasolineraRepository.js";
+import { RegistrarGasolineraUseCase } from "../application/useCases/registrarGasolinera.js";
 
-// Crear instancias y configurar sus dependencias
-const persistenciaAdapter = new LocalStorageAdapter();
-const calculadoraService = new CalculadoraService();
-const realizarSumaUseCase = new RealizarSumaUseCase(calculadoraService, persistenciaAdapter);
+// Inicializar conexión a base de datos y repositorios
+let mysqlGasolineraRepository;
+let registrarGasolineraUseCase;
 
-export { realizarSumaUseCase };
+const initDatabaseDependencies = async () => {
+  try {
+    const connection = await getConnection();
+    mysqlGasolineraRepository = new MysqlGasolineraRepository(connection);
+    registrarGasolineraUseCase = new RegistrarGasolineraUseCase(mysqlGasolineraRepository);
+  } catch (error) {
+    console.error("Error al inicializar dependencias de base de datos:", error);
+  }
+};
+
+// Inicializar de forma asíncrona
+initDatabaseDependencies();
+
+export {
+  registrarGasolineraUseCase
+};

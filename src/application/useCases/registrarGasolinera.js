@@ -29,8 +29,12 @@ export class RegistrarGasolineraUseCase {
       gasolineraData.openTime,
       gasolineraData.closeTime
     );
-    
-    gasolinera.validate();
+    console.log("Gasolinera creada:", gasolinera);
+    try {
+      gasolinera.validate();
+    } catch (error) {
+      throw new Error("La validación de la gasolinera falló: " + error.message);
+    }
     
     // Guardar la gasolinera en el repositorio
     return await this.gasolineraRepository.save(gasolinera);

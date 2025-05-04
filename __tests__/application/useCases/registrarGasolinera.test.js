@@ -1,5 +1,6 @@
 import { RegistrarGasolineraUseCase } from "../../../src/application/useCases/registrarGasolinera.js";
 import { GasolineraRepository } from "../../../src/application/ports/output/GasolineraRepository.js";
+import { Gasolinera } from "../../../src/domain/entities/Gasolinera.js";
 
 describe('RegistrarGasolineraUseCase', () => {
   // Mock del repositorio
@@ -80,6 +81,25 @@ describe('RegistrarGasolineraUseCase', () => {
     await expect(useCase.execute(gasolineraConHorarioInvalido))
       .rejects
       .toThrow("El horario de apertura debe ser menor al horario de cierre");
+  
+    // Verificar que no se llamó al método save
+    expect(mockGasolineraRepository.save).not.toHaveBeenCalled();
+  });
+  it('debería lanzar un error si la validación de la gasolinera falla', async () => {
+    // Arrange
+    const useCase = new RegistrarGasolineraUseCase(mockGasolineraRepository);
+    const gasolineraInvalida = { ...gasolineraValida, name: "" }; // Nombre vacío para forzar error
+  
+    // Mock de la validación para lanzar un error
+    jest.spyOn(Gasolinera.prototype, 'validate').mockImplementation(() => {
+      console.log("Mock de validate llamado");
+      throw new Error("La validación de la gasolinera falló");
+    });
+  
+    // Act & Assert
+    await expect(useCase.execute(gasolineraInvalida))
+      .rejects
+      .toThrow("La validación de la gasolinera falló");
   
     // Verificar que no se llamó al método save
     expect(mockGasolineraRepository.save).not.toHaveBeenCalled();

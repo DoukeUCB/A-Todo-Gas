@@ -71,4 +71,17 @@ describe('RegistrarGasolineraUseCase', () => {
     // Verificar que no se llamó al método save
     expect(mockGasolineraRepository.save).not.toHaveBeenCalled();
   });
+  it('debería lanzar un error si el horario de apertura es mayor o igual al horario de cierre', async () => {
+    // Arrange
+    const gasolineraConHorarioInvalido = { ...gasolineraValida, openTime: "20:00", closeTime: "08:00" };
+    const useCase = new RegistrarGasolineraUseCase(mockGasolineraRepository);
+  
+    // Act & Assert
+    await expect(useCase.execute(gasolineraConHorarioInvalido))
+      .rejects
+      .toThrow("El horario de apertura debe ser menor al horario de cierre");
+  
+    // Verificar que no se llamó al método save
+    expect(mockGasolineraRepository.save).not.toHaveBeenCalled();
+  });
 });

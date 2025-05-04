@@ -16,6 +16,10 @@ export class RegistrarGasolineraUseCase {
   if (duplicada) {
     throw new Error("Ya existe una gasolinera registrada con esta dirección");
   }
+  // Validar horarios
+  if (gasolineraData.openTime >= gasolineraData.closeTime) {
+    throw new Error("El horario de apertura debe ser menor al horario de cierre");
+  }
 
     // Crear y validar la entidad Gasolinera
     const gasolinera = new Gasolinera(

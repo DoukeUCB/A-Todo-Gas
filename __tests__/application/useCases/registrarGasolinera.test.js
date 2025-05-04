@@ -57,4 +57,18 @@ describe('RegistrarGasolineraUseCase', () => {
       .rejects
       .toThrow("El usuario ya tiene una gasolinera registrada");
   });
+  it('debería lanzar un error si ya existe una gasolinera con la misma dirección', async () => {
+    // Arrange
+    mockGasolineraRepository.findByUserId.mockResolvedValue(null);
+    mockGasolineraRepository.findByAddress = jest.fn().mockResolvedValue({ id: 3, address: gasolineraValida.address });
+    const useCase = new RegistrarGasolineraUseCase(mockGasolineraRepository);
+  
+    // Act & Assert
+    await expect(useCase.execute(gasolineraValida))
+      .rejects
+      .toThrow("Ya existe una gasolinera registrada con esta dirección");
+  
+    // Verificar que no se llamó al método save
+    expect(mockGasolineraRepository.save).not.toHaveBeenCalled();
+  });
 });

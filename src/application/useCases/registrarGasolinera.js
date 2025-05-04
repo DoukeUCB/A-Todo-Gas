@@ -11,6 +11,11 @@ export class RegistrarGasolineraUseCase {
     if (existente) {
       throw new Error("El usuario ya tiene una gasolinera registrada");
     }
+    // Verificar si ya existe una gasolinera con la misma dirección
+  const duplicada = await this.gasolineraRepository.findByAddress?.(gasolineraData.address);
+  if (duplicada) {
+    throw new Error("Ya existe una gasolinera registrada con esta dirección");
+  }
 
     // Crear y validar la entidad Gasolinera
     const gasolinera = new Gasolinera(

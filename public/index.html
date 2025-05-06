@@ -3,24 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Hexagonal</title>
+    <title>A Todo Gas - Registro de Gasolinera</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Calculadora</h1>
-        <form id="form">
+        <h1>Registro de Gasolinera</h1>
+        <form id="registro-gasolinera-form">
             <div class="form-group">
-                <label for="primer-numero">Primer número:</label>
-                <input type="number" id="primer-numero">
+                <label for="user-id">ID de Usuario:</label>
+                <input type="number" id="user-id" required>
             </div>
             <div class="form-group">
-                <label for="segundo-numero">Segundo número:</label>
-                <input type="number" id="segundo-numero">
+                <label for="nombre-gasolinera">Nombre de la Gasolinera:</label>
+                <input type="text" id="nombre-gasolinera" required>
             </div>
-            <button type="submit">Sumar</button>
+            <div class="form-group">
+                <label for="direccion-gasolinera">Dirección:</label>
+                <textarea id="direccion-gasolinera" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="hora-apertura">Hora de Apertura:</label>
+                <input type="time" id="hora-apertura" required>
+            </div>
+            <div class="form-group">
+                <label for="hora-cierre">Hora de Cierre:</label>
+                <input type="time" id="hora-cierre" required>
+            </div>
+            <button type="submit">Registrar Gasolinera</button>
         </form>
-        <div id="resultado-div"></div>
+        <div id="mensaje-resultado" class="mensaje"></div>
     </div>
     <script type="module" src="../src/index.js"></script>
 </body>

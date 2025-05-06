@@ -1,11 +1,14 @@
 export class WebUIAdapter {
-  constructor(sumaUseCase) {
-    this.sumaUseCase = sumaUseCase;
+  constructor(registrarGasolineraUseCase) {
+    this.registrarGasolineraUseCase = registrarGasolineraUseCase;
     this.elements = {
-      first: null,
-      second: null,
-      form: null,
-      resultDiv: null
+      registroForm: null,
+      userId: null,
+      nombre: null,
+      direccion: null,
+      horaApertura: null,
+      horaCierre: null,
+      mensaje: null
     };
   }
 
@@ -15,29 +18,46 @@ export class WebUIAdapter {
   }
 
   bindDOMElements() {
-    this.elements.first = document.querySelector("#primer-numero");
-    this.elements.second = document.querySelector("#segundo-numero");
-    this.elements.form = document.querySelector("#form");
-    this.elements.resultDiv = document.querySelector("#resultado-div");
+    this.elements.registroForm = document.querySelector("#registro-gasolinera-form");
+    this.elements.userId = document.querySelector("#user-id");
+    this.elements.nombre = document.querySelector("#nombre-gasolinera");
+    this.elements.direccion = document.querySelector("#direccion-gasolinera");
+    this.elements.horaApertura = document.querySelector("#hora-apertura");
+    this.elements.horaCierre = document.querySelector("#hora-cierre");
+    this.elements.mensaje = document.querySelector("#mensaje-resultado");
   }
 
   setupEventListeners() {
-    this.elements.form.addEventListener("submit", (event) => {
+    this.elements.registroForm.addEventListener("submit", (event) => {
       event.preventDefault();
       this.handleSubmit();
     });
   }
 
-  handleSubmit() {
-    const firstNumber = Number.parseInt(this.elements.first.value);
-    const secondNumber = Number.parseInt(this.elements.second.value);
+  async handleSubmit() {
+    try {
+      this.updateUI("Procesando...", "info");
+      
+      const gasolineraData = {
+        userId: Number(this.elements.userId.value),
+        name: this.elements.nombre.value,
+        address: this.elements.direccion.value,
+        openTime: this.elements.horaApertura.value,
+        closeTime: this.elements.horaCierre.value
+      };
 
-    // Usar el método execute del caso de uso
-    const resultado = this.sumaUseCase.execute(firstNumber, secondNumber);
-    this.updateUI(resultado);
+      // Llamar al caso de uso de forma asíncrona
+      const resultado = await this.registrarGasolineraUseCase.execute(gasolineraData);
+      
+      this.updateUI(`Gasolinera registrada exitosamente. ID: ${resultado.id}`, "success");
+      this.elements.registroForm.reset();
+    } catch (error) {
+      this.updateUI(`Error: ${error.message}`, "error");
+    }
   }
 
-  updateUI(resultado) {
-    this.elements.resultDiv.innerHTML = "<p>" + resultado + "</p>";
+  updateUI(mensaje, tipo) {
+    this.elements.mensaje.textContent = mensaje;
+    this.elements.mensaje.className = `mensaje ${tipo}`;
   }
 }

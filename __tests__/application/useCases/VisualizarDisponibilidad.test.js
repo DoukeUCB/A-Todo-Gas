@@ -23,5 +23,15 @@ describe('HU-03/Sprint-01 Visualizar Disponibilidad de Gasolineras', () => {
       'Gas station must have an id, name, and availability status'
     );
   });
+  it(' Filtrar gasolineras por disponibilidad', () => {
+    const gasStations = [
+      { id: 1, name: 'Station 1', available: true },
+      { id: 2, name: 'Station 2', available: false },
+    ];
+    gasStations.forEach(station => visualizarDisponibilidad.addGasStation(station));
+  
+    const availableStations = visualizarDisponibilidad.getAvailableGasStations();
+    expect(availableStations).toEqual([{ id: 1, name: 'Station 1', available: true }]);
+  });
 
 });

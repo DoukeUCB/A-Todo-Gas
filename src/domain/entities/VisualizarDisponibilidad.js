@@ -13,6 +13,9 @@ class VisualizarDisponibilidad {
     }
     this.gasStations.push(gasStation);
   }
+  getAvailableGasStations() {
+    return this.gasStations.filter(station => station.available);
+  }
 }
 
 module.exports = VisualizarDisponibilidad;

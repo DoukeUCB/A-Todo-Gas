@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="2" failures="0" errors="0" time="2.696">
-  <testsuite name="CalculadoraService" errors="0" failures="0" skipped="0" timestamp="2025-04-22T14:19:45" time="0.827" tests="1">
-    <testcase classname="CalculadoraService debería sumar dos números" name="CalculadoraService debería sumar dos números" time="0.008">
+<testsuites name="jest tests" tests="6" failures="0" errors="0" time="2.41">
+  <testsuite name="RegistrarGasolineraUseCase" errors="0" failures="0" skipped="0" timestamp="2025-05-04T13:59:09" time="1.283" tests="6">
+    <testcase classname="RegistrarGasolineraUseCase debería registrar una gasolinera correctamente" name="RegistrarGasolineraUseCase debería registrar una gasolinera correctamente" time="0.047">
     </testcase>
-  </testsuite>
-  <testsuite name="RealizarSumaUseCase" errors="0" failures="0" skipped="0" timestamp="2025-04-22T14:19:45" time="0.836" tests="1">
-    <testcase classname="RealizarSumaUseCase debería sumar dos números correctamente" name="RealizarSumaUseCase debería sumar dos números correctamente" time="0.009">
+    <testcase classname="RegistrarGasolineraUseCase debería rechazar una gasolinera con datos incompletos" name="RegistrarGasolineraUseCase debería rechazar una gasolinera con datos incompletos" time="0.033">
+    </testcase>
+    <testcase classname="RegistrarGasolineraUseCase debería verificar si el usuario ya tiene una gasolinera registrada" name="RegistrarGasolineraUseCase debería verificar si el usuario ya tiene una gasolinera registrada" time="0.003">
+    </testcase>
+    <testcase classname="RegistrarGasolineraUseCase debería lanzar un error si ya existe una gasolinera con la misma dirección" name="RegistrarGasolineraUseCase debería lanzar un error si ya existe una gasolinera con la misma dirección" time="0.002">
+    </testcase>
+    <testcase classname="RegistrarGasolineraUseCase debería lanzar un error si el horario de apertura es mayor o igual al horario de cierre" name="RegistrarGasolineraUseCase debería lanzar un error si el horario de apertura es mayor o igual al horario de cierre" time="0.002">
+    </testcase>
+    <testcase classname="RegistrarGasolineraUseCase debería lanzar un error si la validación de la gasolinera falla" name="RegistrarGasolineraUseCase debería lanzar un error si la validación de la gasolinera falla" time="0.007">
     </testcase>
   </testsuite>
 </testsuites>

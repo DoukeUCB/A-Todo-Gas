@@ -7,6 +7,10 @@ export class GasolineraRepository {
     throw new Error("Método no implementado");
   }
 
+  async findByAddress(address) {
+    throw new Error("Método no implementado");
+  }
+
   async findById(id) {
     throw new Error("Método no implementado");
   }

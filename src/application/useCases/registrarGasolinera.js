@@ -11,15 +11,17 @@ export class RegistrarGasolineraUseCase {
     if (existente) {
       throw new Error("El usuario ya tiene una gasolinera registrada");
     }
+    
     // Verificar si ya existe una gasolinera con la misma dirección
-  const duplicada = await this.gasolineraRepository.findByAddress?.(gasolineraData.address);
-  if (duplicada) {
-    throw new Error("Ya existe una gasolinera registrada con esta dirección");
-  }
-  // Validar horarios
-  if (gasolineraData.openTime >= gasolineraData.closeTime) {
-    throw new Error("El horario de apertura debe ser menor al horario de cierre");
-  }
+    const duplicada = await this.gasolineraRepository.findByAddress(gasolineraData.address);
+    if (duplicada) {
+      throw new Error("Ya existe una gasolinera registrada con esta dirección");
+    }
+    
+    // Validar horarios
+    if (gasolineraData.openTime >= gasolineraData.closeTime) {
+      throw new Error("El horario de apertura debe ser menor al horario de cierre");
+    }
 
     // Crear y validar la entidad Gasolinera
     const gasolinera = new Gasolinera(

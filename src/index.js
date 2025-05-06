@@ -1,5 +1,8 @@
-// Este archivo será el punto de entrada para la aplicación
-import './presenter.js';
+import { WebUIAdapter } from './adapters/primary/web/WebUIAdapter.js';
 
-// Inicialización global
-console.log('Aplicación A-Todo-Gas iniciada');
+// Inicializar la interfaz cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Inicializando la aplicación cliente...');
+  const webAdapter = new WebUIAdapter();
+  webAdapter.init();
+});

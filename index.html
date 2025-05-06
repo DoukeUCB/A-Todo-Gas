@@ -58,7 +58,7 @@
     <form id="registro-gasolinera-form">
         <div class="form-group">
             <label for="user-id">ID de Usuario:</label>
-            <input type="number" id="user-id" required>
+            <input type="number" id="user-id" required value="1">
         </div>
         
         <div class="form-group">
@@ -73,12 +73,12 @@
         
         <div class="form-group">
             <label for="hora-apertura">Hora de Apertura:</label>
-            <input type="time" id="hora-apertura" required>
+            <input type="time" id="hora-apertura" required value="08:00">
         </div>
         
         <div class="form-group">
             <label for="hora-cierre">Hora de Cierre:</label>
-            <input type="time" id="hora-cierre" required>
+            <input type="time" id="hora-cierre" required value="20:00">
         </div>
         
         <button type="submit">Registrar Gasolinera</button>
@@ -86,6 +86,6 @@
     
     <div id="mensaje-resultado" class="mensaje"></div>
     
-    <script type="module" src="../src/index.js"></script>
+    <script type="module" src="./src/index.js"></script>
 </body>
 </html>

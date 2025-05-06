@@ -9,13 +9,19 @@ describe('HU-03/Sprint-01 Visualizar Disponibilidad de Gasolineras', () => {
     visualizarDisponibilidad = new VisualizarDisponibilidad();
   });
 
-  test('Debería inicializarse con una lista vacía de gasolineras.', () => {
+  it('Debería inicializarse con una lista vacía de gasolineras.', () => {
     expect(visualizarDisponibilidad.getGasStations()).toEqual([]);
   });
-  test('Permitir agregar una gasolinera con detalles de disponibilidad', () => {
+  it('Permitir agregar una gasolinera con detalles de disponibilidad', () => {
     const gasStation = { id: 1, name: 'Station 1', available: true };
     visualizarDisponibilidad.addGasStation(gasStation);
     expect(visualizarDisponibilidad.getGasStations()).toContainEqual(gasStation);
+  });
+  it('Validar campos obligatorios al agregar una gasolinera', () => {
+    const invalidGasStation = { name: 'Station 3' }; // Missing 'id' and 'available'
+    expect(() => visualizarDisponibilidad.addGasStation(invalidGasStation)).toThrow(
+      'Gas station must have an id, name, and availability status'
+    );
   });
 
 });

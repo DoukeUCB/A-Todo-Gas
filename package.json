@@ -42,7 +42,7 @@
     "mysql2": "^3.9.1",
     "parcel-jest-base": "file:"
   },
-  "main": "cypress.config.js",
+  "main": "cypress.config.html",
   "repository": {
     "type": "git",
     "url": "git@github.com-UCB:DoukeUCB/QuickGasoline.git"

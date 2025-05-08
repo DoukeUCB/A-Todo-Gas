@@ -5,8 +5,8 @@ const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'Password',
-  database: process.env.DB_NAME || 'quickGasonline_db',
+  password: process.env.DB_PASSWORD || 'password',
+  database: process.env.DB_NAME || 'quickgasoline_db',
 };
 
 console.log('Configuración de base de datos:', { 

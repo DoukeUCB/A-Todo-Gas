@@ -1,5 +1,4 @@
 import { RegistrarGasolineraUseCase } from "../../../src/application/useCases/registrarGasolinera.js";
-import { GasolineraRepository } from "../../../src/application/ports/output/GasolineraRepository.js";
 import { Gasolinera } from "../../../src/domain/entities/Gasolinera.js";
 
 describe('RegistrarGasolineraUseCase', () => {

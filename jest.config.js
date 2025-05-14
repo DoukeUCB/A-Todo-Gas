@@ -1,22 +1,16 @@
-export default {
-  testEnvironment: 'jsdom',
-  verbose: true,
+module.exports = {
+  testEnvironment: 'node',
+  testMatch: ['**/__tests__/**/*.js', '**/*.test.js'],
   collectCoverage: true,
-  coverageDirectory: './coverage/',
-  testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
+  collectCoverageFrom: [
+    'src/**/*.js',
+    '!src/index.js',
+    '!**/node_modules/**'
+  ],
+  coverageDirectory: 'coverage',
+  verbose: true,
   transform: {
     '^.+\\.js$': 'babel-jest'
   },
-  moduleFileExtensions: ['js', 'json'],
-  reporters: [
-    'default',
-    ['jest-junit', {
-      outputDirectory: './script',
-      outputName: 'report.xml'
-    }]
-  ],
-  // Usar el reporter de json incorporado en vez de jest-json-reporter
-  jsonReporter: {
-    outputFile: './script/report.json'
-  }
+  setupFilesAfterEnv: ['./test/setup.js']
 };

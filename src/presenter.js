@@ -5,3 +5,12 @@ import { WebUIAdapter } from "./adapters/primary/web/WebUIAdapter";
 const webAdapter = new WebUIAdapter(realizarSumaUseCase);
 // Iniciar la aplicación
 webAdapter.init();
+
+// Módulo básico para el presentador
+const presenter = {
+  init: () => {
+    console.log('Inicializando interfaz de usuario');
+  }
+};
+
+module.exports = presenter;

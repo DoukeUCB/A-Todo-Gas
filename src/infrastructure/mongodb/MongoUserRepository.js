@@ -1,64 +1,102 @@
-const { v4: uuidv4 } = require('uuid');
-const IUserRepository = require('../../domain/repositories/IUserRepository');
 const User = require('../../domain/entities/User');
+const { v4: uuidv4 } = require('uuid');
 
-class MongoUserRepository extends IUserRepository {
+class MongoUserRepository {
   constructor(db) {
-    super();
-    this.db = db;
     this.collection = db.collection('users');
   }
-  
-  async findById(id) {
-    const userData = await this.collection.findOne({ _id: id });
-    if (!userData) return null;
-    
-    return new User({
-      id: userData._id,
-      fullName: userData.fullName,
-      ci: userData.ci,
-      email: userData.email,
-      phone: userData.phone,
-      password: userData.password,
-      role: userData.role
-    });
-  }
-  
-  async findByCI(ci) {
-    const userData = await this.collection.findOne({ ci });
-    if (!userData) return null;
-    
-    return new User({
-      id: userData._id,
-      fullName: userData.fullName,
-      ci: userData.ci,
-      email: userData.email,
-      phone: userData.phone,
-      password: userData.password,
-      role: userData.role
-    });
-  }
-  
-  async findByEmail(email) {
-    const userData = await this.collection.findOne({ email });
-    if (!userData) return null;
-    
-    return new User({
-      id: userData._id,
-      fullName: userData.fullName,
-      ci: userData.ci,
-      email: userData.email,
-      phone: userData.phone,
-      password: userData.password,
-      role: userData.role
-    });
-  }
-  
+
   async create(user) {
-    const id = user.id || uuidv4();
+    // Si no tiene ID, generamos uno
+    if (!user.id) {
+      user.id = uuidv4();
+    }
+
+    // Verificar si ya existe un usuario con el mismo CI o email
+    const existingUserCI = await this.findByCI(user.ci);
+    if (existingUserCI) {
+      throw new Error(`Ya existe un usuario con el CI: ${user.ci}`);
+    }
+
+    const existingUserEmail = await this.findByEmail(user.email);
+    if (existingUserEmail) {
+      throw new Error(`Ya existe un usuario con el email: ${user.email}`);
+    }
+
+    // Convertir la entidad a documento MongoDB
+    const userDoc = this._toMongoDocument(user);
+
+    try {
+      await this.collection.insertOne(userDoc);
+      return user;
+    } catch (error) {
+      if (error.code === 11000) { // Error de clave duplicada
+        if (error.keyPattern.ci) {
+          throw new Error(`Ya existe un usuario con el CI: ${user.ci}`);
+        }
+        if (error.keyPattern.email) {
+          throw new Error(`Ya existe un usuario con el email: ${user.email}`);
+        }
+      }
+      throw error;
+    }
+  }
+
+  async findById(id) {
+    const userDoc = await this.collection.findOne({ _id: id });
+    return userDoc ? this._toEntity(userDoc) : null;
+  }
+
+  async findByCI(ci) {
+    const userDoc = await this.collection.findOne({ ci });
+    return userDoc ? this._toEntity(userDoc) : null;
+  }
+
+  async findByEmail(email) {
+    const userDoc = await this.collection.findOne({ email });
+    return userDoc ? this._toEntity(userDoc) : null;
+  }
+
+  async update(id, updateData) {
+    const updateDoc = {};
     
-    const userToInsert = {
-      _id: id,
+    // Solo permitir actualizar ciertos campos
+    if (updateData.fullName !== undefined) updateDoc.fullName = updateData.fullName;
+    if (updateData.phone !== undefined) updateDoc.phone = updateData.phone;
+    if (updateData.password !== undefined) updateDoc.password = updateData.password;
+    
+    // No permitir actualizar CI, email o role por seguridad
+
+    const result = await this.collection.updateOne(
+      { _id: id },
+      { $set: updateDoc }
+    );
+
+    return result.modifiedCount > 0;
+  }
+
+  async delete(id) {
+    const result = await this.collection.deleteOne({ _id: id });
+    return result.deletedCount > 0;
+  }
+
+  // Convierte un documento MongoDB a entidad de dominio
+  _toEntity(doc) {
+    return new User({
+      id: doc._id,
+      fullName: doc.fullName,
+      ci: doc.ci,
+      email: doc.email,
+      phone: doc.phone,
+      password: doc.password,
+      role: doc.role
+    });
+  }
+
+  // Convierte una entidad de dominio a documento MongoDB
+  _toMongoDocument(user) {
+    return {
+      _id: user.id,
       fullName: user.fullName,
       ci: user.ci,
       email: user.email,
@@ -66,50 +104,6 @@ class MongoUserRepository extends IUserRepository {
       password: user.password,
       role: user.role
     };
-    
-    try {
-      // Verificar manualmente si ya existe un usuario con el mismo CI o email
-      const duplicateCI = await this.collection.findOne({ ci: user.ci });
-      if (duplicateCI) {
-        throw new Error(`Ya existe un usuario con el CI: ${user.ci}`);
-      }
-      
-      const duplicateEmail = await this.collection.findOne({ email: user.email });
-      if (duplicateEmail) {
-        throw new Error(`Ya existe un usuario con el email: ${user.email}`);
-      }
-      
-      await this.collection.insertOne(userToInsert);
-      return new User({ id, ...user });
-    } catch (error) {
-      // Manejo adicional para errores de MongoDB
-      if (error.code === 11000) {
-        // Error de MongoDB para clave duplicada
-        const field = error.message.includes('ci') ? 'CI' : 'email';
-        throw new Error(`Ya existe un usuario con el mismo ${field}`);
-      }
-      throw error;
-    }
-  }
-  
-  async update(id, userData) {
-    try {
-      const result = await this.collection.updateOne(
-        { _id: id },
-        { $set: userData }
-      );
-      return result.modifiedCount > 0;
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new Error('Ya existe un usuario con el mismo CI o email');
-      }
-      throw error;
-    }
-  }
-  
-  async delete(id) {
-    const result = await this.collection.deleteOne({ _id: id });
-    return result.deletedCount > 0;
   }
 }
 

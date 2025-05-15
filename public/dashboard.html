@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - QuickGasoline</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <div class="dashboard-container">
+            <header class="app-header">
+                <h1>QuickGasoline</h1>
+                <div class="user-info">
+                    <span id="user-greeting">Cargando...</span>
+                    <a href="#" id="logout-btn">Cerrar Sesión</a>
+                </div>
+            </header>
+            
+            <nav class="main-nav" id="main-nav">
+                <!-- Se generará dinámicamente -->
+                <p>Cargando menú...</p>
+            </nav>
+            
+            <main class="main-content" id="dashboard-content">
+                <div class="loading">Cargando contenido...</div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si hay una sesión activa
+            const currentUserData = localStorage.getItem('currentUser');
+            if (!currentUserData) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const currentUser = JSON.parse(currentUserData);
+            
+            // Actualizar saludo
+            document.getElementById('user-greeting').textContent = `Hola, ${currentUser.fullName}`;
+            
+            // Configurar navegación según el rol
+            const navMenu = document.getElementById('main-nav');
+            if (currentUser.role === 'conductor') {
+                navMenu.innerHTML = `
+                    <a href="#" class="nav-item active" data-view="stations">Gasolineras</a>
+                    <a href="#" class="nav-item" data-view="tickets">Mis Tickets</a>
+                `;
+            } else {
+                navMenu.innerHTML = `
+                    <a href="#" class="nav-item active" data-view="manage">Administrar Gasolinera</a>
+                    <a href="#" class="nav-item" data-view="station-tickets">Tickets de mi Estación</a>
+                `;
+            }
+            
+            // Contenido inicial
+            const dashboardContent = document.getElementById('dashboard-content');
+            dashboardContent.innerHTML = '<h2>Bienvenido al sistema QuickGasoline</h2><p>Seleccione una opción del menú</p>';
+            
+            // Manejar cierre de sesión
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                localStorage.removeItem('currentUser');
+                window.location.href = '/login.html';
+            });
+            
+            // Manejar clics en la navegación
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Actualizar clase activa
+                    document.querySelectorAll('.nav-item').forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Cargar vista según la selección
+                    const view = this.dataset.view;
+                    loadView(view);
+                });
+            });
+            
+            // Función para cargar vistas
+            function loadView(view) {
+                dashboardContent.innerHTML = `<div class="loading">Cargando ${view}...</div>`;
+                
+                // Simulación básica de carga de vistas
+                setTimeout(() => {
+                    switch (view) {
+                        case 'stations':
+                            dashboardContent.innerHTML = '<h2>Gasolineras Disponibles</h2><p>Lista de gasolineras en desarrollo...</p>';
+                            break;
+                        case 'tickets':
+                            dashboardContent.innerHTML = '<h2>Mis Tickets</h2><p>Historial de tickets en desarrollo...</p>';
+                            break;
+                        case 'manage':
+                            dashboardContent.innerHTML = '<h2>Administrar Gasolinera</h2><p>Panel de administración en desarrollo...</p>';
+                            break;
+                        case 'station-tickets':
+                            dashboardContent.innerHTML = '<h2>Tickets de mi Estación</h2><p>Lista de tickets en desarrollo...</p>';
+                            break;
+                        default:
+                            dashboardContent.innerHTML = '<h2>Contenido no disponible</h2>';
+                    }
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

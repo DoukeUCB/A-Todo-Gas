@@ -3,89 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickGasoline - Registro de Gasolineras</title>
+    <title>QuickGasoline - Sistema de tickets para gasolineras</title>
+    <link rel="stylesheet" href="/css/styles.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        /* Estilos adicionales específicos para este archivo */
+        .message-container {
+            margin: 20px auto;
             max-width: 800px;
-            margin: 0 auto;
             padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .mensaje {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .success {
-            background-color: #dff0d8;
-            color: #3c763d;
-        }
-        .error {
-            background-color: #f2dede;
-            color: #a94442;
-        }
-        .info {
-            background-color: #d9edf7;
-            color: #31708f;
+        
+        .api-status {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-left: 4px solid #3498db;
         }
     </style>
 </head>
 <body>
-    <h1>Registro de Gasolinera</h1>
-    
-    <form id="registro-gasolinera-form">
-        <div class="form-group">
-            <label for="user-id">ID de Usuario:</label>
-            <input type="number" id="user-id" required>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <h1>QuickGasoline</h1>
+                <p>Sistema de tickets para gasolineras</p>
+            </div>
+            <nav class="main-menu">
+                <a href="/login.html" class="btn btn-primary">Iniciar Sesión</a>
+                <a href="/registro.html" class="btn">Registrarse</a>
+            </nav>
         </div>
-        
-        <div class="form-group">
-            <label for="nombre-gasolinera">Nombre de la Gasolinera:</label>
-            <input type="text" id="nombre-gasolinera" required>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h2>La manera más rápida de evitar filas en gasolineras</h2>
+                <p>Solicita tu ticket desde cualquier lugar y ahorra tiempo valioso</p>
+                <div class="hero-buttons">
+                    <a href="/login.html" class="btn btn-primary">Comenzar Ahora</a>
+                    <a href="#how-it-works" class="btn btn-secondary">Cómo Funciona</a>
+                </div>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="direccion-gasolinera">Dirección:</label>
-            <input type="text" id="direccion-gasolinera" required>
+    </section>
+
+    <div class="message-container">
+        <div class="api-status" id="api-status">
+            <h3>Estado de la API</h3>
+            <p id="api-message">Verificando conexión con la API...</p>
         </div>
-        
-        <div class="form-group">
-            <label for="hora-apertura">Hora de Apertura:</label>
-            <input type="time" id="hora-apertura" required>
+    </div>
+
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">¿Cómo Funciona?</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Regístrate</h3>
+                    <p>Crea una cuenta como conductor o administrador de gasolinera</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Encuentra tu gasolinera</h3>
+                    <p>Busca la estación más cercana o tu preferida</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Solicita un ticket</h3>
+                    <p>Con un solo clic, reserva tu lugar en la fila</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Llega a tiempo</h3>
+                    <p>Dirígete a la gasolinera y muestra tu ticket digital</p>
+                </div>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="hora-cierre">Hora de Cierre:</label>
-            <input type="time" id="hora-cierre" required>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Beneficios</h2>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <h3>Para Conductores</h3>
+                    <ul>
+                        <li>Ahorra tiempo al evitar filas</li>
+                        <li>Planifica tu visita a la gasolinera</li>
+                        <li>Encuentra estaciones cercanas</li>
+                        <li>Historial de tickets</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>Para Gasolineras</h3>
+                    <ul>
+                        <li>Mejora la experiencia del cliente</li>
+                        <li>Optimiza el flujo de vehículos</li>
+                        <li>Gestiona fácilmente los tickets</li>
+                        <li>Estadísticas de uso</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        
-        <button type="submit">Registrar Gasolinera</button>
-    </form>
-    
-    <div id="mensaje-resultado" class="mensaje"></div>
-    
-    <script type="module" src="../src/index.js"></script>
+    </section>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2023 QuickGasoline. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Script para verificar la conexión con la API
+        document.addEventListener('DOMContentLoaded', async function() {
+            const statusElement = document.getElementById('api-message');
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    statusElement.innerHTML = '✅ API funcionando correctamente';
+                    document.querySelector('.api-status').style.borderLeft = '4px solid #2ecc71';
+                } else {
+                    statusElement.innerHTML = '⚠️ API responde pero hay problemas';
+                    document.querySelector('.api-status').style.borderLeft = '4px solid #f39c12';
+                }
+            } catch (error) {
+                statusElement.innerHTML = '❌ Error de conexión con la API: ' + error.message;
+                document.querySelector('.api-status').style.borderLeft = '4px solid #e74c3c';
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,9 +1,3 @@
-/**
- * WebUIAdapter.js
- * 
- * Adaptador primario para interfaz web usando DOM.
- * Maneja la interacción entre la UI y los puertos de la aplicación.
- */
 class WebUIAdapter {
   constructor(userService, gasStationService, ticketService) {
     this.userService = userService;
@@ -116,12 +110,12 @@ class WebUIAdapter {
 
   /**
    * Maneja la autenticación de usuarios
-   * @param {string} email - Correo electrónico
+   * @param {string} ci - Carnet de identidad
    * @param {string} password - Contraseña
    */
-  async handleLogin(email, password) {
+  async handleLogin(ci, password) {
     try {
-      const user = await this.userService.login(email, password);
+      const user = await this.userService.login(ci, password);
       
       // Guardar información de sesión
       localStorage.setItem('currentUser', JSON.stringify({
@@ -132,7 +126,13 @@ class WebUIAdapter {
       }));
       
       this.showNotification('success', 'Inicio de sesión exitoso');
-      this.navigateTo('dashboard');
+      
+      // Redireccionar según el rol
+      if (user.role === 'conductor') {
+        window.location.href = '/dashboard.html';
+      } else if (user.role === 'gasolinera') {
+        window.location.href = '/admin-dashboard.html';
+      }
     } catch (error) {
       this.showNotification('error', error.message || 'Error al iniciar sesión');
     }
@@ -178,8 +178,9 @@ class WebUIAdapter {
         <h2>Iniciar Sesión</h2>
         <form id="login-form">
           <div class="form-group">
-            <label for="email">Correo Electrónico</label>
-            <input type="email" id="email" name="email" required>
+            <label for="ci">Carnet de Identidad (CI)</label>
+            <input type="text" id="ci" name="ci" required pattern="[0-9]+" placeholder="Ej: 12345678">
+            <small>Ingrese solo números</small>
           </div>
           <div class="form-group">
             <label for="password">Contraseña</label>
@@ -187,7 +188,7 @@ class WebUIAdapter {
           </div>
           <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
         </form>
-        <p>¿No tienes una cuenta? <a href="#" data-navigate="register">Regístrate aquí</a></p>
+        <p>¿No tienes una cuenta? <a href="/registro.html">Regístrate aquí</a></p>
       </div>
     `;
     
@@ -196,9 +197,9 @@ class WebUIAdapter {
     // Configurar el event listener para el formulario
     document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('email').value;
+      const ci = document.getElementById('ci').value;
       const password = document.getElementById('password').value;
-      this.handleLogin(email, password);
+      this.handleLogin(ci, password);
     });
   }
 

@@ -21,4 +21,17 @@ describe('createTicketUseCase', () => {
     expect(ticket.stationName).toBe(data.stationName);
     expect(ticket.createdAt).toBeInstanceOf(Date);
   });
+
+  it('debería lanzar un error si el CI es inválido', () => {
+    const data = {
+      id: '2',
+      ci: 'ABC123', // CI inválido
+      plate: 'XYZ-789',
+      ticketNumber: 11,
+      stationId: 'ST02',
+      stationName: 'Estación Norte',
+      createdAt: new Date()
+    };
+    expect(() => createTicket(data)).toThrow('El CI es requerido y debe contener solo números');
+  });
 });

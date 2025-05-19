@@ -47,4 +47,17 @@ describe('createTicketUseCase', () => {
     };
     expect(() => createTicket(data)).toThrow('La matrícula es requerida y debe tener formato válido (letras mayúsculas, números y guiones)');
   });
+
+  it('debería lanzar un error si el nombre de la estación está vacío', () => {
+    const data = {
+      id: '4',
+      ci: '5555555',
+      plate: 'DEF-456',
+      ticketNumber: 13,
+      stationId: 'ST04',
+      stationName: '', // nombre vacío
+      createdAt: new Date()
+    };
+    expect(() => createTicket(data)).toThrow('El nombre de la estación es requerido');
+  });
 });

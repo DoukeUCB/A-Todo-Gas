@@ -34,4 +34,17 @@ describe('createTicketUseCase', () => {
     };
     expect(() => createTicket(data)).toThrow('El CI es requerido y debe contener solo números');
   });
+
+  it('debería lanzar un error si la matrícula es inválida', () => {
+    const data = {
+      id: '3',
+      ci: '9876543',
+      plate: 'abc-123', // minúsculas no permitidas
+      ticketNumber: 12,
+      stationId: 'ST03',
+      stationName: 'Estación Sur',
+      createdAt: new Date()
+    };
+    expect(() => createTicket(data)).toThrow('La matrícula es requerida y debe tener formato válido (letras mayúsculas, números y guiones)');
+  });
 });

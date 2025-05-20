@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - QuickGasoline</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/apiConfig.js"></script>
 </head>
 <body>
     <header class="auth-header">
@@ -19,19 +20,19 @@
         <div class="auth-container" id="app">
             <h2>Iniciar Sesión</h2>
             <form id="login-form">
-              <div class="form-group">
-                <label for="ci">Carnet de Identidad (CI)</label>
-                <input type="text" id="ci" name="ci" required pattern="[0-9]+" placeholder="Ej: 12345678">
-                <small>Ingrese solo números</small>
-              </div>
-              <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" required>
-              </div>
-              <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                <div class="form-group">
+                    <label for="ci">Carnet de Identidad (CI)</label>
+                    <input type="text" id="ci" name="ci" required pattern="[0-9]+" placeholder="Ej: 12345678">
+                    <small>Ingrese solo números</small>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div id="error-message" class="error-message" style="display: none;"></div>
+                <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
             </form>
             <p>¿No tienes una cuenta? <a href="/registro.html">Regístrate aquí</a></p>
-            <div id="login-message"></div>
         </div>
     </div>
 
@@ -42,48 +43,120 @@
     </footer>
 
     <script>
-        document.getElementById('login-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        // Función para mostrar notificaciones
+        function showNotification(type, message) {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
             
-            const messageDiv = document.getElementById('login-message');
-            messageDiv.innerHTML = '<p style="color: #3498db; padding: 10px; background: #e8f4f8;">Procesando solicitud...</p>';
+            document.body.appendChild(notification);
             
-            const ci = document.getElementById('ci').value;
-            const password = document.getElementById('password').value;
+            setTimeout(() => {
+                notification.classList.add('notification-hide');
+                setTimeout(() => notification.remove(), 500);
+            }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('login-form');
+            const errorMessage = document.getElementById('error-message');
             
-            try {
-                const response = await fetch('/api/users/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ ci, password })
-                });
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
                 
-                const data = await response.json();
+                const submitButton = loginForm.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.textContent = "Procesando...";
                 
-                if (response.ok) {
+                // Ocultar mensaje de error anterior
+                errorMessage.style.display = 'none';
+                
+                const ci = document.getElementById('ci').value;
+                const password = document.getElementById('password').value;
+                
+                try {
+                    // Hacer la solicitud usando la configuración de API
+                    const response = await API_CONFIG.fetchAPI('/api/users/login', {
+                        method: 'POST',
+                        body: JSON.stringify({ ci, password })
+                    });
+                    
                     // Guardar información de sesión
-                    localStorage.setItem('currentUser', JSON.stringify(data.data));
+                    if (response.success && response.data) {
+                        localStorage.setItem('currentUser', JSON.stringify({
+                            id: response.data.id,
+                            fullName: response.data.fullName,
+                            role: response.data.role,
+                            ci: response.data.ci
+                        }));
+                        
+                        showNotification('success', 'Inicio de sesión exitoso');
+                        
+                        // Redireccionar según el rol
+                        setTimeout(() => {
+                            if (response.data.role === 'conductor') {
+                                window.location.href = '/dashboard.html';
+                            } else if (response.data.role === 'gasolinera') {
+                                window.location.href = '/admin-dashboard.html';
+                            }
+                        }, 500);
+                    } else {
+                        throw new Error('Datos de inicio de sesión inválidos');
+                    }
+                } catch (error) {
+                    console.error('Error al iniciar sesión:', error);
                     
-                    messageDiv.innerHTML = '<p style="color: #2ecc71; padding: 10px; background: #eafaf1;">Inicio de sesión exitoso. Redirigiendo...</p>';
+                    // Mostrar mensaje de error
+                    errorMessage.textContent = error.message || 'Error al iniciar sesión. Intente nuevamente.';
+                    errorMessage.style.display = 'block';
                     
-                    // Redirigir según rol
-                    setTimeout(() => {
-                        if (data.data.role === 'conductor') {
-                            window.location.href = '/dashboard.html';
-                        } else {
-                            window.location.href = '/admin-dashboard.html';
-                        }
-                    }, 1000);
-                } else {
-                    messageDiv.innerHTML = `<p style="color: #e74c3c; padding: 10px; background: #fdeaea;">${data.message || 'Error al iniciar sesión'}</p>`;
+                    // Habilitar botón nuevamente
+                    submitButton.disabled = false;
+                    submitButton.textContent = "Iniciar Sesión";
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                messageDiv.innerHTML = `<p style="color: #e74c3c; padding: 10px; background: #fdeaea;">Error de conexión. Intente nuevamente.</p>`;
-            }
+            });
         });
     </script>
+
+    <style>
+        .error-message {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s;
+        }
+        .notification-success {
+            background-color: #28a745;
+        }
+        .notification-error {
+            background-color: #dc3545;
+        }
+        .notification-hide {
+            animation: fadeOut 0.5s;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
 </body>
 </html>

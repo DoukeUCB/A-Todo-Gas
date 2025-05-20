@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Gasolinera - QuickGasoline</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/apiConfig.js"></script>
 </head>
 <body>
     <header class="auth-header">
@@ -167,23 +168,13 @@
                         
                         console.log('Enviando datos a la API:', stationData);
                         
-                        // Usar fetch para enviar los datos al backend
-                        const response = await fetch('/api/stations', {
+                        // Usar API_CONFIG para la solicitud
+                        const result = await API_CONFIG.fetchAPI('/api/stations', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
                             body: JSON.stringify(stationData)
                         });
                         
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
-                        }
-                        
-                        const data = await response.json();
-                        console.log('Respuesta de la API:', data);
+                        console.log('Respuesta de la API:', result);
                         
                         showNotification('success', 'Gasolinera creada correctamente');
                         // Redirigir al dashboard

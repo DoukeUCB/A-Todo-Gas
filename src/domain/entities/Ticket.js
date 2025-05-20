@@ -1,11 +1,12 @@
 class Ticket {
-  constructor({ id, ci, plate, ticketNumber, stationId, stationName, createdAt }) {
+  constructor({ id, ci, plate, ticketNumber, stationId, stationName, requestedLiters = 0, createdAt }) {
     this.id = id;
     this.ci = ci;
     this.plate = plate;
     this.ticketNumber = typeof ticketNumber === 'string' ? parseInt(ticketNumber) : ticketNumber;
     this.stationId = stationId;
     this.stationName = stationName;
+    this.requestedLiters = typeof requestedLiters === 'string' ? parseFloat(requestedLiters) : requestedLiters;
     this.createdAt = createdAt instanceof Date ? createdAt : new Date(createdAt || Date.now());
     
     this.validate();
@@ -30,6 +31,10 @@ class Ticket {
     
     if (!this.stationName || typeof this.stationName !== 'string') {
       throw new Error('El nombre de la estación es requerido');
+    }
+    
+    if (this.requestedLiters < 0) {
+      throw new Error('La cantidad de litros solicitados no puede ser negativa');
     }
     
     if (!(this.createdAt instanceof Date) || isNaN(this.createdAt)) {

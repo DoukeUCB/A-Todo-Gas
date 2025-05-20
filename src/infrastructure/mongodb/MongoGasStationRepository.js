@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const GasStation = require('../../domain/entities/GasStation');
+const { Int32, Double } = require('mongodb');
 
 /**
  * Repositorio para la persistencia de GasStations en MongoDB
@@ -20,14 +21,35 @@ class MongoGasStationRepository {
    * @private
    */
   _toDocument(gasStation) {
+    // Asegurarse de que los campos tienen los tipos correctos para MongoDB
+    const stationNumber = parseInt(gasStation.stationNumber || 0);
+    const currentLevel = parseFloat(gasStation.currentLevel || 0);
+    const ticketCount = parseInt(gasStation.ticketCount || 0);
+    
+    // Verificar que son valores válidos
+    if (isNaN(stationNumber) || stationNumber <= 0) {
+      throw new Error('El número de estación debe ser un número entero positivo');
+    }
+    
+    if (isNaN(currentLevel) || currentLevel < 0) {
+      throw new Error('El nivel de combustible debe ser un número no negativo');
+    }
+    
+    if (isNaN(ticketCount) || ticketCount < 0) {
+      throw new Error('El contador de tickets debe ser un número entero no negativo');
+    }
+    
     return {
       _id: gasStation.id || uuidv4(),
-      stationNumber: parseInt(gasStation.stationNumber), // Garantizar que sea entero
-      name: gasStation.name,
-      address: gasStation.address,
-      openTime: new Date(gasStation.openTime), // Garantizar que sea fecha
-      closeTime: new Date(gasStation.closeTime), // Garantizar que sea fecha
-      managerCi: gasStation.managerCi
+      stationNumber: new Int32(stationNumber), // Tipo BSON Int32 para enteros
+      name: String(gasStation.name),
+      address: String(gasStation.address),
+      openTime: new Date(gasStation.openTime), // Ya es tipo Date
+      closeTime: new Date(gasStation.closeTime), // Ya es tipo Date
+      managerCi: String(gasStation.managerCi),
+      currentLevel: new Double(currentLevel), // Tipo BSON Double para decimales
+      available: Boolean(currentLevel > 0), // Asegurar que es booleano
+      ticketCount: new Int32(ticketCount) // Tipo BSON Int32 para enteros
     };
   }
 
@@ -47,7 +69,10 @@ class MongoGasStationRepository {
       address: doc.address,
       openTime: doc.openTime,
       closeTime: doc.closeTime,
-      managerCi: doc.managerCi
+      managerCi: doc.managerCi,
+      currentLevel: doc.currentLevel,
+      available: doc.available,
+      ticketCount: doc.ticketCount
     });
   }
 
@@ -151,6 +176,17 @@ class MongoGasStationRepository {
     if (updateData.stationNumber !== undefined) {
       updateDoc.stationNumber = parseInt(updateData.stationNumber);
     }
+
+    // Actualizar nivel de combustible y disponibilidad
+    if (updateData.currentLevel !== undefined) {
+      updateDoc.currentLevel = parseFloat(updateData.currentLevel);
+      updateDoc.available = parseFloat(updateData.currentLevel) > 0;
+    }
+
+    // Actualizar contador de tickets
+    if (updateData.ticketCount !== undefined) {
+      updateDoc.ticketCount = parseInt(updateData.ticketCount);
+    }
     
     try {
       const result = await this.collection.updateOne(
@@ -161,6 +197,57 @@ class MongoGasStationRepository {
     } catch (error) {
       console.error('Error al actualizar la gasolinera:', error);
       throw new Error('Error al actualizar la gasolinera: ' + error.message);
+    }
+  }
+
+  /**
+   * Incrementa el contador de tickets y actualiza el nivel de combustible
+   * @param {string} id - ID de la gasolinera
+   * @param {number} requestedLiters - Litros solicitados
+   * @returns {Promise<boolean>} True si se actualizó correctamente
+   */
+  async incrementTicketCountAndUpdateFuel(id, requestedLiters) {
+    try {
+      const result = await this.collection.updateOne(
+        { _id: id },
+        { 
+          $inc: { 
+            ticketCount: 1,
+            currentLevel: -requestedLiters // Reducir el nivel de combustible
+          },
+          $set: {
+            available: { $cond: [{ $gte: ["$currentLevel", requestedLiters] }, true, false] }
+          }
+        }
+      );
+      return result.modifiedCount > 0;
+    } catch (error) {
+      console.error('Error al actualizar contador de tickets y combustible:', error);
+      throw new Error('Error al actualizar la información de la gasolinera');
+    }
+  }
+  
+  /**
+   * Actualiza el nivel de combustible y disponibilidad
+   * @param {string} id - ID de la gasolinera
+   * @param {number} newLevel - Nuevo nivel de combustible
+   * @returns {Promise<boolean>} True si se actualizó correctamente
+   */
+  async updateFuelLevel(id, newLevel) {
+    try {
+      const result = await this.collection.updateOne(
+        { _id: id },
+        { 
+          $set: { 
+            currentLevel: parseFloat(newLevel),
+            available: parseFloat(newLevel) > 0
+          }
+        }
+      );
+      return result.modifiedCount > 0;
+    } catch (error) {
+      console.error('Error al actualizar nivel de combustible:', error);
+      throw new Error('Error al actualizar el nivel de combustible');
     }
   }
 

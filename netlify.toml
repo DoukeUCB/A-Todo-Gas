@@ -8,10 +8,11 @@
   to = "/index.html"
   status = 200
   
-# Configuración de headers para seguridad
+# Configuración actualizada de headers para seguridad
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
-    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://quickgasoline-api.onrender.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    # Actualizado para permitir la URL de Render
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://quickgasoline.onrender.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"

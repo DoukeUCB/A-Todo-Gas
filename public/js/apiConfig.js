@@ -2,6 +2,7 @@
  * Configuración de la API para el frontend
  */
 const API_CONFIG = {
+  // URL base de la API en producción - URL confirmada en Render
   // URL base de la API en producción
   baseURL: 'https://quickgasoline.onrender.com',
   

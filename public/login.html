@@ -75,7 +75,7 @@
                 const password = document.getElementById('password').value;
                 
                 try {
-                    // Hacer la solicitud usando la configuración de API
+                    // Usar API_CONFIG para la solicitud
                     const response = await API_CONFIG.fetchAPI('/api/users/login', {
                         method: 'POST',
                         body: JSON.stringify({ ci, password })

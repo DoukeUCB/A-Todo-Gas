@@ -1,5 +1,5 @@
 class GasStation {
-  constructor({ id, stationNumber, name, address, openTime, closeTime, managerCi }) {
+  constructor({ id, stationNumber, name, address, openTime, closeTime, managerCi, currentLevel = 0, available = false, ticketCount = 0 }) {
     this.id = id;
     this.stationNumber = typeof stationNumber === 'string' ? parseInt(stationNumber) : stationNumber;
     this.name = name;
@@ -7,6 +7,9 @@ class GasStation {
     this.openTime = openTime instanceof Date ? openTime : new Date(openTime);
     this.closeTime = closeTime instanceof Date ? closeTime : new Date(closeTime);
     this.managerCi = managerCi;
+    this.currentLevel = typeof currentLevel === 'string' ? parseFloat(currentLevel) : currentLevel;
+    this.available = typeof available === 'string' ? available === 'true' : !!available;
+    this.ticketCount = typeof ticketCount === 'string' ? parseInt(ticketCount) : ticketCount;
     
     this.validate();
   }
@@ -39,6 +42,27 @@ class GasStation {
     if (!this.managerCi || !/^[0-9]+$/.test(this.managerCi)) {
       throw new Error('El CI del administrador es requerido y debe contener solo números');
     }
+    
+    if (this.currentLevel < 0) {
+      throw new Error('El nivel de combustible no puede ser negativo');
+    }
+    
+    if (typeof this.available !== 'boolean') {
+      throw new Error('La disponibilidad debe ser un valor booleano');
+    }
+    
+    if (this.ticketCount < 0) {
+      throw new Error('El contador de tickets no puede ser negativo');
+    }
+  }
+  
+  /**
+   * Verifica si hay combustible suficiente para la cantidad solicitada
+   * @param {number} liters - Litros solicitados
+   * @returns {boolean} True si hay suficiente combustible
+   */
+  hasSufficientFuel(liters) {
+    return this.available && this.currentLevel >= liters;
   }
 }
 

@@ -9,7 +9,7 @@ const API_CONFIG = {
   getBaseURL: function() {
     // Detectar si estamos en desarrollo (localhost) o producción
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:8000';
+      return 'http://localhost:10000';
     }
     return this.baseURL;
   },

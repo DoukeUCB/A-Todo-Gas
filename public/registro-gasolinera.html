@@ -30,8 +30,29 @@
         </div>
     </footer>
 
-    <script src="/js/bundle.js"></script>
     <script>
+        // Función para mostrar notificaciones
+        function showNotification(type, message) {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('notification-hide');
+                setTimeout(() => notification.remove(), 500);
+            }, 5000);
+        }
+
+        // Función para convertir string de tiempo a objeto Date
+        function timeStringToDate(timeStr) {
+            const date = new Date();
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            date.setHours(hours, minutes, 0, 0);
+            return date;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Verificar si hay un usuario en sesión con rol de gasolinera
@@ -48,13 +69,7 @@
                     window.location.href = '/dashboard.html';
                     return;
                 }
-
-                // Inicializar la aplicación
-                const { initializeApp } = window.QuickGasoline;
-                const app = initializeApp('app');
                 
-                // Cargar el formulario de registro de gasolinera
-                // Aquí sería ideal tener un método específico para esta vista
                 const container = document.getElementById('app');
                 
                 container.innerHTML = `
@@ -89,29 +104,60 @@
                 // Configurar manejo del formulario
                 document.getElementById('create-station-form').addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const formData = new FormData(e.target);
+                    const form = e.target;
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.textContent = "Creando...";
                     
                     try {
-                        // Convertir horas a objetos Date
-                        const openTime = app._timeStringToDate(formData.get('openTime'));
-                        const closeTime = app._timeStringToDate(formData.get('closeTime'));
+                        // Recolectar datos del formulario
+                        const openTimeStr = form.elements.openTime.value;
+                        const closeTimeStr = form.elements.closeTime.value;
                         
-                        const station = await app.gasStationService.createStation({
-                            stationNumber: formData.get('stationNumber'),
-                            name: formData.get('name'),
-                            address: formData.get('address'),
-                            openTime,
-                            closeTime,
-                            managerCi: formData.get('managerCi')
+                        // Convertir horas a objetos Date
+                        const openTime = timeStringToDate(openTimeStr);
+                        const closeTime = timeStringToDate(closeTimeStr);
+                        
+                        // Crear objeto de datos para enviar a la API
+                        const stationData = {
+                            stationNumber: parseInt(form.elements.stationNumber.value),
+                            name: form.elements.name.value,
+                            address: form.elements.address.value,
+                            openTime: openTime.toISOString(),
+                            closeTime: closeTime.toISOString(),
+                            managerCi: form.elements.managerCi.value
+                        };
+                        
+                        console.log('Enviando datos a la API:', stationData);
+                        
+                        // Usar fetch para enviar los datos al backend
+                        const response = await fetch('/api/stations', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(stationData)
                         });
                         
-                        app.showNotification('success', 'Gasolinera creada correctamente');
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        const data = await response.json();
+                        console.log('Respuesta de la API:', data);
+                        
+                        showNotification('success', 'Gasolinera creada correctamente');
                         // Redirigir al dashboard
                         setTimeout(() => {
                             window.location.href = '/dashboard.html';
                         }, 1500);
                     } catch (error) {
-                        app.showNotification('error', error.message || 'Error al crear la gasolinera');
+                        console.error('Error al crear gasolinera:', error);
+                        showNotification('error', error.message || 'Error al crear la gasolinera');
+                        submitButton.disabled = false;
+                        submitButton.textContent = "Crear Gasolinera";
                     }
                 });
                 
@@ -122,6 +168,7 @@
                         <h2>Error</h2>
                         <p>Ha ocurrido un error al cargar el formulario:</p>
                         <pre>${error.message}</pre>
+                        <a href="/dashboard.html" class="btn btn-primary">Volver al Dashboard</a>
                     </div>
                 `;
             }

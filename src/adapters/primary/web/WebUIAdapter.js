@@ -144,10 +144,14 @@ class WebUIAdapter {
    */
   async handleRegister(userData) {
     try {
+      // Utilizar el servicio directamente en lugar de hacer la petición HTTP
+      // Esto asegura que se use el mismo formato y validación
       const user = await this.userService.register(userData);
       this.showNotification('success', 'Usuario registrado correctamente');
       this.navigateTo('login');
     } catch (error) {
+      // Mensaje más informativo sobre errores
+      console.error('Error durante el registro:', error);
       this.showNotification('error', error.message || 'Error al registrar usuario');
     }
   }
@@ -167,6 +171,23 @@ class WebUIAdapter {
   getCurrentUser() {
     const userData = localStorage.getItem('currentUser');
     return userData ? JSON.parse(userData) : null;
+  }
+
+  /**
+   * Maneja la creación de gasolineras
+   * @param {Object} stationData - Datos de la gasolinera a crear
+   * @param {HTMLElement} container - Contenedor donde actualizar la UI
+   */
+  async handleCreateStation(stationData, container) {
+    try {
+      // Utilizar el servicio directamente 
+      const station = await this.gasStationService.createStation(stationData);
+      this.showNotification('success', 'Gasolinera creada correctamente');
+      this._renderStationManagement(station, container);
+    } catch (error) {
+      console.error('Error al crear gasolinera:', error);
+      this.showNotification('error', error.message || 'Error al crear la gasolinera');
+    }
   }
 
   /**
@@ -647,7 +668,7 @@ class WebUIAdapter {
       </div>
     `;
     
-    // Event listener para el formulario
+    // Event listener para el formulario - Usando el método handleCreateStation
     document.getElementById('create-station-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
@@ -656,21 +677,16 @@ class WebUIAdapter {
       const openTime = this._timeStringToDate(formData.get('openTime'));
       const closeTime = this._timeStringToDate(formData.get('closeTime'));
       
-      try {
-        const station = await this.gasStationService.createStation({
-          stationNumber: formData.get('stationNumber'),
-          name: formData.get('name'),
-          address: formData.get('address'),
-          openTime,
-          closeTime,
-          managerCi: formData.get('managerCi')
-        });
-        
-        this.showNotification('success', 'Gasolinera creada correctamente');
-        this._renderStationManagement(station, container);
-      } catch (error) {
-        this.showNotification('error', error.message || 'Error al crear la gasolinera');
-      }
+      const stationData = {
+        stationNumber: formData.get('stationNumber'),
+        name: formData.get('name'),
+        address: formData.get('address'),
+        openTime,
+        closeTime,
+        managerCi: formData.get('managerCi')
+      };
+      
+      this.handleCreateStation(stationData, container);
     });
   }
 

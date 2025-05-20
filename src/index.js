@@ -30,6 +30,10 @@ async function startApp() {
     const userController = require('./adapters/secondary/rest/userController');
     app.use('/api/users', userController);
     
+    // AÑADIR: Configurar controlador de gasolineras
+    const gasStationController = require('./adapters/secondary/rest/gasStationController');
+    app.use('/api/stations', gasStationController);
+    
     // Ruta de prueba simple para verificar que la API funciona
     app.get('/api/health', (req, res) => {
       res.json({ status: 'ok', message: 'API funcionando correctamente' });

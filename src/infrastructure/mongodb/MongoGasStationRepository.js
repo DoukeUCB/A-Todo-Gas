@@ -1,83 +1,45 @@
-const GasStation = require('../../domain/entities/GasStation');
 const { v4: uuidv4 } = require('uuid');
+const GasStation = require('../../domain/entities/GasStation');
 
+/**
+ * Repositorio para la persistencia de GasStations en MongoDB
+ */
 class MongoGasStationRepository {
-  constructor(db) {
-    this.collection = db.collection('gasStations');
+  /**
+   * Constructor del repositorio
+   * @param {Object} database - Instancia de la base de datos MongoDB
+   */
+  constructor(database) {
+    this.collection = database.collection('gasStations');
   }
 
-  async create(gasStation) {
-    // Si no tiene ID, generamos uno
-    if (!gasStation.id) {
-      gasStation.id = uuidv4();
-    }
-
-    // Verificar si ya existe una gasolinera con el mismo número
-    const existingStation = await this.findByStationNumber(gasStation.stationNumber);
-    if (existingStation) {
-      throw new Error(`Ya existe una gasolinera con el número: ${gasStation.stationNumber}`);
-    }
-
-    // Convertir la entidad a documento MongoDB
-    const gasStationDoc = this._toMongoDocument(gasStation);
-
-    try {
-      await this.collection.insertOne(gasStationDoc);
-      return gasStation;
-    } catch (error) {
-      if (error.code === 11000) { // Error de clave duplicada
-        throw new Error(`Ya existe una gasolinera con el número: ${gasStation.stationNumber}`);
-      }
-      throw error;
-    }
+  /**
+   * Convierte una entidad GasStation a documento MongoDB
+   * @param {GasStation} gasStation - Entidad de gasolinera del dominio
+   * @returns {Object} Documento para MongoDB
+   * @private
+   */
+  _toDocument(gasStation) {
+    return {
+      _id: gasStation.id || uuidv4(),
+      stationNumber: parseInt(gasStation.stationNumber), // Garantizar que sea entero
+      name: gasStation.name,
+      address: gasStation.address,
+      openTime: new Date(gasStation.openTime), // Garantizar que sea fecha
+      closeTime: new Date(gasStation.closeTime), // Garantizar que sea fecha
+      managerCi: gasStation.managerCi
+    };
   }
 
-  async findById(id) {
-    const gasStationDoc = await this.collection.findOne({ _id: id });
-    return gasStationDoc ? this._toEntity(gasStationDoc) : null;
-  }
-
-  async findByStationNumber(stationNumber) {
-    const gasStationDoc = await this.collection.findOne({ stationNumber: parseInt(stationNumber) });
-    return gasStationDoc ? this._toEntity(gasStationDoc) : null;
-  }
-
-  async findByManagerCI(managerCi) {
-    const gasStationDoc = await this.collection.findOne({ managerCi });
-    return gasStationDoc ? this._toEntity(gasStationDoc) : null;
-  }
-
-  async findAll() {
-    const gasStationDocs = await this.collection.find({}).toArray();
-    return gasStationDocs.map(doc => this._toEntity(doc));
-  }
-
-  async update(id, updateData) {
-    const updateDoc = {};
-    
-    // Solo permitir actualizar ciertos campos
-    if (updateData.name !== undefined) updateDoc.name = updateData.name;
-    if (updateData.address !== undefined) updateDoc.address = updateData.address;
-    if (updateData.openTime !== undefined) updateDoc.openTime = updateData.openTime;
-    if (updateData.closeTime !== undefined) updateDoc.closeTime = updateData.closeTime;
-    
-    // No permitir actualizar stationNumber o managerCi
-
-    const result = await this.collection.updateOne(
-      { _id: id },
-      { $set: updateDoc }
-    );
-
-    return result.modifiedCount > 0;
-  }
-
-  async delete(id) {
-    const result = await this.collection.deleteOne({ _id: id });
-    return result.deletedCount > 0;
-  }
-
-  // Convierte un documento MongoDB a entidad de dominio
+  /**
+   * Convierte un documento MongoDB a entidad GasStation
+   * @param {Object} doc - Documento de MongoDB
+   * @returns {GasStation} Entidad de gasolinera del dominio
+   * @private
+   */
   _toEntity(doc) {
+    if (!doc) return null;
+
     return new GasStation({
       id: doc._id,
       stationNumber: doc.stationNumber,
@@ -89,17 +51,127 @@ class MongoGasStationRepository {
     });
   }
 
-  // Convierte una entidad de dominio a documento MongoDB
-  _toMongoDocument(gasStation) {
-    return {
-      _id: gasStation.id,
-      stationNumber: gasStation.stationNumber,
-      name: gasStation.name,
-      address: gasStation.address,
-      openTime: gasStation.openTime,
-      closeTime: gasStation.closeTime,
-      managerCi: gasStation.managerCi
-    };
+  /**
+   * Crea una nueva gasolinera en la base de datos
+   * @param {GasStation} gasStation - Entidad de gasolinera del dominio
+   * @returns {Promise<GasStation>} Gasolinera creada con ID generado
+   */
+  async create(gasStation) {
+    try {
+      // Convertir a documento MongoDB
+      const doc = this._toDocument(gasStation);
+      
+      // Insertar en la colección
+      await this.collection.insertOne(doc);
+      
+      // Devolver la entidad con el ID generado
+      return this._toEntity(doc);
+    } catch (error) {
+      console.error('Error al guardar la gasolinera en MongoDB:', error);
+      
+      // Proporcionar mensajes de error más específicos
+      if (error.code === 11000) {
+        if (error.keyPattern?.stationNumber) {
+          throw new Error(`Ya existe una gasolinera con el número: ${gasStation.stationNumber}`);
+        } else if (error.keyPattern?.managerCi) {
+          throw new Error(`El administrador con CI: ${gasStation.managerCi} ya tiene una gasolinera asignada`);
+        } else {
+          throw new Error('Ya existe una gasolinera con estos datos');
+        }
+      }
+      
+      throw new Error('Error al guardar la gasolinera: ' + error.message);
+    }
+  }
+
+  /**
+   * Busca una gasolinera por su ID
+   * @param {string} id - ID de la gasolinera
+   * @returns {Promise<GasStation|null>} Gasolinera encontrada o null
+   */
+  async findById(id) {
+    const doc = await this.collection.findOne({ _id: id });
+    return this._toEntity(doc);
+  }
+
+  /**
+   * Busca una gasolinera por su número
+   * @param {number} stationNumber - Número de la gasolinera
+   * @returns {Promise<GasStation|null>} Gasolinera encontrada o null
+   */
+  async findByStationNumber(stationNumber) {
+    // Convertir explícitamente a entero para la búsqueda
+    const numericStationNumber = parseInt(stationNumber);
+    const doc = await this.collection.findOne({ stationNumber: numericStationNumber });
+    return this._toEntity(doc);
+  }
+
+  /**
+   * Busca una gasolinera por el CI del administrador
+   * @param {string} managerCi - CI del administrador
+   * @returns {Promise<GasStation|null>} Gasolinera encontrada o null
+   */
+  async findByManagerCI(managerCi) {
+    const doc = await this.collection.findOne({ managerCi });
+    return this._toEntity(doc);
+  }
+
+  /**
+   * Obtiene todas las gasolineras
+   * @returns {Promise<Array<GasStation>>} Lista de gasolineras
+   */
+  async findAll() {
+    const docs = await this.collection.find({}).toArray();
+    return docs.map(doc => this._toEntity(doc));
+  }
+
+  /**
+   * Actualiza una gasolinera
+   * @param {string} id - ID de la gasolinera
+   * @param {Object} updateData - Datos a actualizar
+   * @returns {Promise<boolean>} True si se actualizó correctamente
+   */
+  async update(id, updateData) {
+    const updateDoc = {};
+    
+    // Procesar solo los campos permitidos
+    if (updateData.name !== undefined) updateDoc.name = updateData.name;
+    if (updateData.address !== undefined) updateDoc.address = updateData.address;
+    
+    // Convertir fechas si están presentes
+    if (updateData.openTime !== undefined) {
+      updateDoc.openTime = new Date(updateData.openTime);
+    }
+    
+    if (updateData.closeTime !== undefined) {
+      updateDoc.closeTime = new Date(updateData.closeTime);
+    }
+    
+    // Si se incluye stationNumber, asegurar que sea entero
+    if (updateData.stationNumber !== undefined) {
+      updateDoc.stationNumber = parseInt(updateData.stationNumber);
+    }
+    
+    try {
+      const result = await this.collection.updateOne(
+        { _id: id },
+        { $set: updateDoc }
+      );
+      return result.modifiedCount > 0;
+    } catch (error) {
+      console.error('Error al actualizar la gasolinera:', error);
+      throw new Error('Error al actualizar la gasolinera: ' + error.message);
+    }
+  }
+
+  /**
+   * Elimina una gasolinera
+   * @param {string} id - ID de la gasolinera
+   * @returns {Promise<boolean>} True si se eliminó correctamente
+   */
+  async delete(id) {
+    const result = await this.collection.deleteOne({ _id: id });
+    return result.deletedCount > 0;
   }
 }
 

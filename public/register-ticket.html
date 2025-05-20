@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar Ticket</title>
+</head>
+<body>
+  <h1>Registrar Ticket</h1>
+  <form id="ticketForm">
+    <label>CI: <input type="text" name="ci" required></label><br>
+    <label>Matrícula: <input type="text" name="plate" required></label><br>
+    <label>Número de Ticket: <input type="number" name="ticketNumber" readonly></label><br>
+    <label>ID Estación: <input type="text" name="stationId" required></label><br>
+    <label>Nombre Estación: <input type="text" name="stationName" required></label><br>
+    <button type="submit">Registrar</button>
+  </form>
+  <div id="resultado"></div>
+  <script>
+    let ticketCounter = 1;
+
+    function generarNumeroTicket() {
+      // Puedes mejorar la lógica según tus necesidades (por ejemplo, persistencia)
+      return ticketCounter++;
+    }
+
+    // Inicializa el campo con el primer número
+    document.querySelector('input[name="ticketNumber"]').value = generarNumeroTicket();
+
+    document.getElementById('ticketForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        id: Date.now().toString(),
+        ci: form.ci.value,
+        plate: form.plate.value,
+        ticketNumber: parseInt(form.ticketNumber.value),
+        stationId: form.stationId.value,
+        stationName: form.stationName.value,
+        createdAt: new Date()
+      };
+      // Simulación de creación de ticket (solo frontend)
+      document.getElementById('resultado').innerText = 'Ticket registrado:\n' + JSON.stringify(data, null, 2);
+      // Genera el siguiente número de ticket para el próximo registro
+      form.ticketNumber.value = generarNumeroTicket();
+    };
+  </script>
+</body>
+</html>

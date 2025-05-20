@@ -1,0 +1,57 @@
+[
+  {
+    "commitId": "8ae7d8315456d788dde4db46697b8248f532460c",
+    "commitName": "FEAT: Use a server for persistance",
+    "commitTimestamp": 1746523239530
+  },
+  {
+    "commitId": "e1a300393a169578e2b0741d74ede72b3c532596",
+    "commitName": "FIX: Add netlify.toml for deploy",
+    "commitTimestamp": 1747063786444
+  },
+  {
+    "commitId": "d0e90a02aaf67664d18870862740d7e13049eda1",
+    "commitName": "FIX: Add netlify.toml for deploy",
+    "commitTimestamp": 1747063928118
+  },
+  {
+    "commitId": "4d2db4b530f3796b62d0963834e5ad6fb64b6cf7",
+    "commitName": "FEAT: Add mongo atlas",
+    "commitTimestamp": 1747202625878
+  },
+  {
+    "commitId": "d41cfd8ea4c96d064db0372660703f35311be9f7",
+    "commitName": "Solve conflicts with main",
+    "commitTimestamp": 1747203154258
+  },
+  {
+    "commitId": "2e6a1dc8f7f8c2c7159b3a077bc83386320a35c8",
+    "commitName": "FIX: Clean unnecesary files",
+    "commitTimestamp": 1747204478132
+  },
+  {
+    "commitId": "ece45f7df559f97c6f571574a7896eb0f1886a8a",
+    "commitName": "FIX: Database and Mongo",
+    "commitTimestamp": 1747720531827
+  },
+  {
+    "commitId": "ca0dcfa74ddd8eb59cd2e711bbf6ebbe9d0e10eb",
+    "commitName": "FIX: html deleting unnecesary functions and using fetch",
+    "commitTimestamp": 1747721054948
+  },
+  {
+    "commitId": "5acc42e0009cf9f80e4bf0556fe17c461f152308",
+    "commitName": "FEAT: Modify entities with new atributes",
+    "commitTimestamp": 1747722987241
+  },
+  {
+    "commitId": "1c36a726105d925109cb7c006c6989e8ba055846",
+    "commitName": "FIX: Netlify report",
+    "commitTimestamp": 1747724219147
+  },
+  {
+    "commitId": "cf8edc5e9f4b56ac4b12c993d6581a9be85ede98",
+    "commitName": "FIX: Netlify report",
+    "commitTimestamp": 1747724234924
+  }
+]

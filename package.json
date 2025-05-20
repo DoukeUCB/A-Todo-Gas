@@ -1,31 +1,29 @@
 {
   "name": "quickgasoline",
   "version": "1.0.0",
-  "description": "Sistema de tickets para gasolineras",
+  "description": "Aplicación para gestionar tickets de gasolinera",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest",
-    "test:watch": "jest --watchAll"
+    "build": "mkdir -p dist && cp -r public/* dist/ && cp -r src dist/",
+    "test": "jest"
   },
-  "keywords": [
-    "gasolinera",
-    "tickets",
-    "mongodb"
-  ],
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "mongodb": "^5.7.0",
+    "mongodb": "^5.0.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.27.2",
-    "jest": "^29.6.2",
-    "mongodb-memory-server": "^8.15.1",
-    "nodemon": "^3.0.1"
-  }
+    "jest": "^29.4.3",
+    "nodemon": "^2.0.20"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "author": "UCB - Ingenieria De Software",
+  "license": "MIT"
 }

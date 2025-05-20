@@ -1,38 +1,27 @@
-// Punto de entrada para el despliegue del backend
+// Punto de entrada para el despliegue de la API en Render
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { connectToDatabase, closeDatabase } = require('./src/infrastructure/mongodb/database');
 
+// Punto de entrada de la aplicación del servidor para API
 async function startServer() {
-  console.log('Iniciando servidor backend de QuickGasoline...');
+  console.log('Iniciando servicio de API QuickGasoline...');
   
   try {
-    // Conectar a la base de datos
+    // Conectar a la base de datos antes de configurar el servidor
     await connectToDatabase();
     console.log('Conexión establecida con MongoDB Atlas');
     
-    // Configurar servidor Express
+    // Configurar el servidor Express
     const app = express();
-    const port = process.env.PORT || 8000;
+    const port = process.env.PORT || 10000;
     
-    // Configurar CORS para permitir solicitudes desde el frontend
-    const allowedOrigins = [
-      'https://quickgasoline.netlify.app', // URL de producción en Netlify
-      'http://localhost:3000', // URL local para desarrollo
-    ];
-    
+    // Configurar CORS para permitir solicitudes desde Netlify
     app.use(cors({
-      origin: function(origin, callback) {
-        // Permitir solicitudes sin origen (como las de herramientas de API)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.indexOf(origin) === -1) {
-          const msg = 'El origen CORS no está permitido';
-          return callback(new Error(msg), false);
-        }
-        return callback(null, true);
-      },
+      origin: ['https://quickgasoline.netlify.app', 'http://localhost:3000'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
       credentials: true
     }));
     
@@ -40,11 +29,11 @@ async function startServer() {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     
-    // Ruta básica
+    // Ruta raíz para verificar que la API está activa
     app.get('/', (req, res) => {
       res.json({ 
-        message: 'API de QuickGasoline funcionando correctamente',
-        version: '1.0.0'
+        status: 'ok', 
+        message: 'API QuickGasoline funcionando correctamente' 
       });
     });
     
@@ -55,22 +44,23 @@ async function startServer() {
     const gasStationController = require('./src/adapters/secondary/rest/gasStationController');
     app.use('/api/stations', gasStationController);
     
+    // Crear un controlador de tickets si no existe
     const ticketController = require('./src/adapters/secondary/rest/ticketController');
     app.use('/api/tickets', ticketController);
     
-    // Ruta de verificación de estado
+    // Ruta de prueba simple para verificar que la API funciona
     app.get('/api/health', (req, res) => {
       res.json({ status: 'ok', message: 'API funcionando correctamente' });
     });
     
     // Iniciar el servidor
     const server = app.listen(port, () => {
-      console.log(`Servidor backend QuickGasoline iniciado en http://localhost:${port}`);
+      console.log(`Servidor API QuickGasoline iniciado en puerto ${port}`);
     });
     
-    // Manejar cierre gracioso
+    // Manejar cierre de la aplicación
     process.on('SIGINT', async () => {
-      console.log('Cerrando aplicación...');
+      console.log('Cerrando API...');
       await closeDatabase();
       await new Promise((resolve) => server.close(resolve));
       console.log('Conexiones cerradas. Saliendo.');
@@ -78,10 +68,10 @@ async function startServer() {
     });
     
   } catch (error) {
-    console.error('Error al iniciar el servidor backend:', error);
+    console.error('Error al iniciar el servidor de API:', error);
     process.exit(1);
   }
 }
 
-// Iniciar el servidor
+// Ejecutar el servidor
 startServer();

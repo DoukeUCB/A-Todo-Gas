@@ -2,14 +2,14 @@
  * Configuración de la API para el frontend
  */
 const API_CONFIG = {
-  // URL base de la API en producción
+  // URL base de la API en producción - Actualizar con la URL real de Render
   baseURL: 'https://quickgasoline.onrender.com',
   
   // Si estamos en desarrollo local, usar la API local
   getBaseURL: function() {
     // Detectar si estamos en desarrollo (localhost) o producción
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:8000';
+      return 'http://localhost:10000';
     }
     return this.baseURL;
   },

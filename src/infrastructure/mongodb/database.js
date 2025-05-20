@@ -1,61 +1,42 @@
 const { MongoClient } = require('mongodb');
 
-let db = null;
 let client = null;
-// Promesa que se resolverá cuando la base de datos esté lista
-let dbInitPromise = null;
+let database = null;
 
 /**
  * Conecta a la base de datos MongoDB
- * @returns {Promise<Db>} Instancia de la base de datos
+ * @returns {Promise<Object>} Instancia de la base de datos
  */
 async function connectToDatabase() {
-  if (dbInitPromise) return dbInitPromise;
+  if (database) return database;
   
-  dbInitPromise = new Promise(async (resolve, reject) => {
-    try {
-      const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/quickGasoline_db';
-      console.log(`Intentando conectar a MongoDB: ${uri}`);
-      
-      client = new MongoClient(uri, { 
-        serverSelectionTimeoutMS: 10000,
-        connectTimeoutMS: 10000
-      });
-      
-      await client.connect();
-      
-      const dbName = process.env.NODE_ENV === 'test' ? 'quickGasoline_test' : 'quickGasoline_db';
-      db = client.db(dbName);
-      
-      console.log(`Conectado a MongoDB: ${dbName}`);
-      resolve(db);
-    } catch (error) {
-      console.error('Error al conectar a MongoDB:', error);
-      reject(error);
-    }
-  });
-  
-  return dbInitPromise;
+  try {
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/quickGasoline_db';
+    client = new MongoClient(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    
+    await client.connect();
+    console.log('Conectado a MongoDB');
+    
+    database = client.db();
+    return database;
+  } catch (error) {
+    console.error('Error al conectar a MongoDB:', error);
+    throw error;
+  }
 }
 
 /**
  * Obtiene la instancia de la base de datos
- * @returns {Promise<Db>} Promesa que se resuelve con la instancia de la base de datos
+ * @returns {Promise<Object>} Instancia de la base de datos
  */
 async function getDatabase() {
-  if (!dbInitPromise) {
-    // Iniciar conexión si aún no se ha hecho
+  if (!database) {
     return connectToDatabase();
   }
-  return dbInitPromise;
-}
-
-/**
- * Verifica si la base de datos está inicializada
- * @returns {boolean} Verdadero si la base de datos está inicializada
- */
-function isDatabaseInitialized() {
-  return db !== null;
+  return database;
 }
 
 /**
@@ -64,9 +45,8 @@ function isDatabaseInitialized() {
 async function closeDatabase() {
   if (client) {
     await client.close();
-    db = null;
     client = null;
-    dbInitPromise = null;
+    database = null;
     console.log('Conexión a MongoDB cerrada');
   }
 }
@@ -74,6 +54,5 @@ async function closeDatabase() {
 module.exports = {
   connectToDatabase,
   getDatabase,
-  isDatabaseInitialized,
   closeDatabase
 };

@@ -3,6 +3,7 @@
  */
 const API_CONFIG = {
   // URL base de la API en producción - URL confirmada en Render
+  // URL base de la API en producción
   baseURL: 'https://quickgasoline.onrender.com',
   
   // Si estamos en desarrollo local, usar la API local

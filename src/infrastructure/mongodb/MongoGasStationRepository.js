@@ -21,12 +21,12 @@ class MongoGasStationRepository {
    */
   _toDocument(gasStation) {
     return {
-      _id: gasStation.id,
-      stationNumber: Number.parseInt(gasStation.stationNumber), // Convertir explícitamente a int para MongoDB
+      _id: gasStation.id || uuidv4(),
+      stationNumber: parseInt(gasStation.stationNumber), // Garantizar que sea entero
       name: gasStation.name,
       address: gasStation.address,
-      openTime: new Date(gasStation.openTime), // Asegurar que sea objeto Date
-      closeTime: new Date(gasStation.closeTime), // Asegurar que sea objeto Date
+      openTime: new Date(gasStation.openTime), // Garantizar que sea fecha
+      closeTime: new Date(gasStation.closeTime), // Garantizar que sea fecha
       managerCi: gasStation.managerCi
     };
   }
@@ -57,25 +57,30 @@ class MongoGasStationRepository {
    * @returns {Promise<GasStation>} Gasolinera creada con ID generado
    */
   async create(gasStation) {
-    // Generar ID si no existe
-    const stationToSave = { ...gasStation };
-    if (!stationToSave.id) {
-      stationToSave.id = uuidv4();
-    }
-
-    // Convertir a documento MongoDB y guardar
-    const doc = this._toDocument(stationToSave);
-    
     try {
+      // Convertir a documento MongoDB
+      const doc = this._toDocument(gasStation);
+      
+      // Insertar en la colección
       await this.collection.insertOne(doc);
+      
+      // Devolver la entidad con el ID generado
       return this._toEntity(doc);
     } catch (error) {
       console.error('Error al guardar la gasolinera en MongoDB:', error);
-      throw new Error(
-        error.code === 11000 
-          ? 'Ya existe una gasolinera con este número o administrador' 
-          : 'Error al guardar la gasolinera'
-      );
+      
+      // Proporcionar mensajes de error más específicos
+      if (error.code === 11000) {
+        if (error.keyPattern?.stationNumber) {
+          throw new Error(`Ya existe una gasolinera con el número: ${gasStation.stationNumber}`);
+        } else if (error.keyPattern?.managerCi) {
+          throw new Error(`El administrador con CI: ${gasStation.managerCi} ya tiene una gasolinera asignada`);
+        } else {
+          throw new Error('Ya existe una gasolinera con estos datos');
+        }
+      }
+      
+      throw new Error('Error al guardar la gasolinera: ' + error.message);
     }
   }
 
@@ -95,8 +100,8 @@ class MongoGasStationRepository {
    * @returns {Promise<GasStation|null>} Gasolinera encontrada o null
    */
   async findByStationNumber(stationNumber) {
-    // Convertir a entero para asegurar consistencia en la búsqueda
-    const numericStationNumber = Number.parseInt(stationNumber);
+    // Convertir explícitamente a entero para la búsqueda
+    const numericStationNumber = parseInt(stationNumber);
     const doc = await this.collection.findOne({ stationNumber: numericStationNumber });
     return this._toEntity(doc);
   }
@@ -128,7 +133,7 @@ class MongoGasStationRepository {
    */
   async update(id, updateData) {
     const updateDoc = {};
-
+    
     // Procesar solo los campos permitidos
     if (updateData.name !== undefined) updateDoc.name = updateData.name;
     if (updateData.address !== undefined) updateDoc.address = updateData.address;
@@ -141,12 +146,12 @@ class MongoGasStationRepository {
     if (updateData.closeTime !== undefined) {
       updateDoc.closeTime = new Date(updateData.closeTime);
     }
-
+    
     // Si se incluye stationNumber, asegurar que sea entero
     if (updateData.stationNumber !== undefined) {
-      updateDoc.stationNumber = Number.parseInt(updateData.stationNumber);
+      updateDoc.stationNumber = parseInt(updateData.stationNumber);
     }
-
+    
     try {
       const result = await this.collection.updateOne(
         { _id: id },
@@ -155,7 +160,7 @@ class MongoGasStationRepository {
       return result.modifiedCount > 0;
     } catch (error) {
       console.error('Error al actualizar la gasolinera:', error);
-      throw new Error('Error al actualizar la gasolinera');
+      throw new Error('Error al actualizar la gasolinera: ' + error.message);
     }
   }
 

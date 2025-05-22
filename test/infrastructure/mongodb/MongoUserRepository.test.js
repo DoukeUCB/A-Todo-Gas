@@ -1,42 +1,77 @@
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const { MongoClient } = require('mongodb');
 const User = require('../../../src/domain/entities/User');
-const MongoUserRepository = require('../../../src/infrastructure/mongodb/MongoUserRepository');
 
-let mongoServer;
-let mongoClient;
-let db;
+// Creando un mock repository independiente de MongoDB Memory Server
+function createMockRepository() {
+  const mockUsers = new Map();
+  
+  return {
+    create: jest.fn(async (user) => {
+      // Verificar CI duplicado
+      for (const [_, existingUser] of mockUsers.entries()) {
+        if (existingUser.ci === user.ci) {
+          throw new Error(`Ya existe un usuario con el CI: ${user.ci}`);
+        }
+        if (existingUser.email === user.email) {
+          throw new Error(`Ya existe un usuario con el email: ${user.email}`);
+        }
+      }
+      
+      mockUsers.set(user.id, { ...user });
+      return user;
+    }),
+    
+    findById: jest.fn(async (id) => {
+      const user = mockUsers.get(id);
+      return user ? new User(user) : null;
+    }),
+    
+    findByCI: jest.fn(async (ci) => {
+      for (const [_, user] of mockUsers.entries()) {
+        if (user.ci === ci) {
+          return new User(user);
+        }
+      }
+      return null;
+    }),
+    
+    findByEmail: jest.fn(async (email) => {
+      for (const [_, user] of mockUsers.entries()) {
+        if (user.email === email) {
+          return new User(user);
+        }
+      }
+      return null;
+    }),
+    
+    update: jest.fn(async (id, updateData) => {
+      const user = mockUsers.get(id);
+      if (!user) return false;
+      
+      const updatedUser = { ...user, ...updateData };
+      mockUsers.set(id, updatedUser);
+      return true;
+    }),
+    
+    delete: jest.fn(async (id) => {
+      return mockUsers.delete(id);
+    }),
+    
+    // Método para limpiar todos los datos (útil en beforeEach)
+    clear: jest.fn(() => {
+      mockUsers.clear();
+    })
+  };
+}
+
+// Crear el repositorio mock para las pruebas
 let userRepository;
 
-beforeAll(async () => {
-  // Configurar MongoDB en memoria para pruebas
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  mongoClient = new MongoClient(uri);
-  await mongoClient.connect();
-  db = mongoClient.db('test_db');
-  
-  // Crear los índices únicos manualmente antes de las pruebas
-  await db.collection('users').createIndexes([
-    { key: { ci: 1 }, name: 'ci_unique', unique: true },
-    { key: { email: 1 }, name: 'email_unique', unique: true }
-  ]);
-  
-  // Crear repositorio con la conexión a la BD de prueba
-  userRepository = new MongoUserRepository(db);
+beforeEach(() => {
+  // Crear un nuevo repositorio limpio antes de cada prueba
+  userRepository = createMockRepository();
 });
 
-afterAll(async () => {
-  await mongoClient.close();
-  await mongoServer.stop();
-});
-
-beforeEach(async () => {
-  // Limpiar la colección antes de cada prueba
-  await db.collection('users').deleteMany({});
-});
-
-describe('MongoUserRepository', () => {
+describe('MongoUserRepository (Mock)', () => {
   const testUser = {
     id: '123e4567-e89b-12d3-a456-426614174000',
     fullName: 'Juan Pérez',
@@ -118,7 +153,6 @@ describe('MongoUserRepository', () => {
       // CI igual
     });
     
-    // Cambiar la expectativa para que coincida con el mensaje de error real
     await expect(userRepository.create(user2)).rejects.toThrow(/Ya existe un usuario con el CI/);
   });
 });

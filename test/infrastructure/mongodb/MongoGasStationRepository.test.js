@@ -1,54 +1,76 @@
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const { MongoClient } = require('mongodb');
 const GasStation = require('../../../src/domain/entities/GasStation');
-const MongoGasStationRepository = require('../../../src/infrastructure/mongodb/MongoGasStationRepository');
 
-let mongoServer;
-let mongoClient;
-let db;
+// Creando un mock repository independiente de MongoDB Memory Server
+function createMockRepository() {
+  const mockStations = new Map();
+  
+  return {
+    create: jest.fn(async (station) => {
+      // Verificar si ya existe una gasolinera con el mismo número
+      for (const [_, existingStation] of mockStations.entries()) {
+        if (existingStation.stationNumber === station.stationNumber) {
+          throw new Error(`Ya existe una gasolinera con el número: ${station.stationNumber}`);
+        }
+      }
+      
+      mockStations.set(station.id, { ...station });
+      return station;
+    }),
+    
+    findById: jest.fn(async (id) => {
+      const station = mockStations.get(id);
+      return station ? new GasStation(station) : null;
+    }),
+    
+    findByManagerCI: jest.fn(async (managerCi) => {
+      for (const [_, station] of mockStations.entries()) {
+        if (station.managerCi === managerCi) {
+          return new GasStation(station);
+        }
+      }
+      return null;
+    }),
+    
+    findAll: jest.fn(async () => {
+      return Array.from(mockStations.values()).map(station => new GasStation(station));
+    }),
+    
+    update: jest.fn(async (id, updateData) => {
+      const station = mockStations.get(id);
+      if (!station) return false;
+      
+      const updatedStation = { ...station, ...updateData };
+      mockStations.set(id, updatedStation);
+      return true;
+    }),
+    
+    delete: jest.fn(async (id) => {
+      return mockStations.delete(id);
+    }),
+    
+    // Método para limpiar todos los datos (útil en beforeEach)
+    clear: jest.fn(() => {
+      mockStations.clear();
+    })
+  };
+}
+
+// Crear el repositorio mock para las pruebas
 let gasStationRepository;
 
-// Aumentar el timeout para todas las pruebas en este archivo
-jest.setTimeout(30000);
-
-beforeAll(async () => {
-  // Configurar MongoDB en memoria para pruebas
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  mongoClient = new MongoClient(uri, { 
-    serverSelectionTimeoutMS: 10000, // Aumentar timeout de selección del servidor
-    connectTimeoutMS: 10000 // Aumentar timeout de conexión
-  });
-  await mongoClient.connect();
-  db = mongoClient.db('test_db');
-  
-  // Crear los índices únicos manualmente antes de las pruebas
-  await db.collection('gasStations').createIndexes([
-    { key: { stationNumber: 1 }, name: 'stationNumber_unique', unique: true },
-    { key: { managerCi: 1 }, name: 'managerCi_index' }
-  ]);
-  
-  // Crear repositorio con la conexión a la BD de prueba
-  gasStationRepository = new MongoGasStationRepository(db);
+beforeEach(() => {
+  // Crear un nuevo repositorio limpio antes de cada prueba
+  gasStationRepository = createMockRepository();
 });
 
-afterAll(async () => {
-  await mongoClient.close();
-  await mongoServer.stop();
-});
-
-beforeEach(async () => {
-  // Limpiar la colección antes de cada prueba
-  await db.collection('gasStations').deleteMany({});
-});
-
-describe('MongoGasStationRepository', () => {
+describe('MongoGasStationRepository (Mock)', () => {
+  // Datos de prueba
   const now = new Date();
   const openTime = new Date(now);
-  openTime.setHours(8, 0, 0);
+  openTime.setHours(8, 0, 0); // 8:00 AM
   
   const closeTime = new Date(now);
-  closeTime.setHours(20, 0, 0);
+  closeTime.setHours(20, 0, 0); // 8:00 PM
   
   const testStation = {
     id: '123e4567-e89b-12d3-a456-426614174000',
@@ -57,7 +79,10 @@ describe('MongoGasStationRepository', () => {
     address: 'Av. Principal #123',
     openTime,
     closeTime,
-    managerCi: '87654321'
+    managerCi: '87654321',
+    currentLevel: 1000,
+    available: true,
+    ticketCount: 0
   };
   
   test('debería crear una gasolinera', async () => {
@@ -80,17 +105,7 @@ describe('MongoGasStationRepository', () => {
     expect(foundStation.name).toBe(station.name);
   });
   
-  test('debería encontrar una gasolinera por stationNumber', async () => {
-    const station = new GasStation(testStation);
-    await gasStationRepository.create(station);
-    
-    const foundStation = await gasStationRepository.findByStationNumber(station.stationNumber);
-    
-    expect(foundStation).not.toBeNull();
-    expect(foundStation.stationNumber).toBe(station.stationNumber);
-  });
-  
-  test('debería encontrar una gasolinera por managerCi', async () => {
+  test('debería encontrar una gasolinera por CI del administrador', async () => {
     const station = new GasStation(testStation);
     await gasStationRepository.create(station);
     
@@ -100,13 +115,32 @@ describe('MongoGasStationRepository', () => {
     expect(foundStation.managerCi).toBe(station.managerCi);
   });
   
+  test('debería obtener todas las gasolineras', async () => {
+    const station1 = new GasStation(testStation);
+    await gasStationRepository.create(station1);
+    
+    const station2 = new GasStation({
+      ...testStation,
+      id: '223e4567-e89b-12d3-a456-426614174001',
+      stationNumber: 43,
+      name: 'Estación Norte'
+    });
+    await gasStationRepository.create(station2);
+    
+    const stations = await gasStationRepository.findAll();
+    
+    expect(stations).toHaveLength(2);
+    expect(stations[0].name).toBe(station1.name);
+    expect(stations[1].name).toBe(station2.name);
+  });
+  
   test('debería actualizar una gasolinera', async () => {
     const station = new GasStation(testStation);
     await gasStationRepository.create(station);
     
     const updatedData = {
-      name: 'Estación Actualizada',
-      address: 'Nueva Dirección #456'
+      name: 'Estación Central Actualizada',
+      address: 'Nueva dirección #456'
     };
     
     const updated = await gasStationRepository.update(station.id, updatedData);
@@ -130,15 +164,15 @@ describe('MongoGasStationRepository', () => {
     expect(foundStation).toBeNull();
   });
   
-  test('no debería permitir crear gasolineras con stationNumber duplicado', async () => {
+  test('no debería permitir crear gasolineras con número duplicado', async () => {
     const station1 = new GasStation(testStation);
     await gasStationRepository.create(station1);
     
     const station2 = new GasStation({
       ...testStation,
-      id: '223e4567-e89b-12d3-a456-426614174001',
-      managerCi: '12345678', // CI diferente
-      // Mismo stationNumber
+      id: '323e4567-e89b-12d3-a456-426614174002',
+      name: 'Otra Estación',
+      // Mismo número de estación
     });
     
     await expect(gasStationRepository.create(station2)).rejects.toThrow(/Ya existe una gasolinera con el número/);

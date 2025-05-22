@@ -3,8 +3,8 @@
  * Detecta automáticamente si estamos en desarrollo local o producción
  */
 const API_CONFIG = {
-  // URL base para producción (vacía significa usar la URL relativa al host actual)
-  prodURL: '',
+  // URL base para producción (servidor en Render)
+  prodURL: 'https://quickgasoline.onrender.com',
   
   // URL base para desarrollo local
   devURL: 'http://localhost:3000',
@@ -36,7 +36,8 @@ const API_CONFIG = {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      credentials: 'same-origin' // Para cookies en el mismo origen
+      // No usar 'same-origin' en producción porque estamos en dominios diferentes
+      credentials: window.location.hostname === 'localhost' ? 'same-origin' : 'omit'
     };
     
     const fetchOptions = {
@@ -104,7 +105,7 @@ const API_CONFIG = {
         if (baseURL.includes('localhost')) {
           throw new Error(`Error de conexión al servidor local (${baseURL}). Asegúrate de que el servidor esté ejecutándose con 'npm run dev'.`);
         } else {
-          throw new Error('Error de conexión al servidor. Verifica tu conexión a internet.');
+          throw new Error(`Error de conexión a ${baseURL}. Verifica tu conexión a internet o si el servidor está caído.`);
         }
       }
       

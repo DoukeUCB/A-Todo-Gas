@@ -18,26 +18,30 @@ async function startApp() {
     const app = express();
     const port = process.env.PORT || 3000;
     
-    // Configurar CORS para desarrollo
+    // Configurar CORS para permitir solicitudes desde Netlify
     app.use(cors({
       origin: function(origin, callback) {
-        // Permitir solicitudes sin origen (como las aplicaciones móviles)
+        // Permitir solicitudes sin origen (como las aplicaciones móviles o Postman)
         if (!origin) return callback(null, true);
         
         // Lista de orígenes permitidos
         const allowedOrigins = [
           'http://localhost:3000',
           'http://127.0.0.1:3000',
+          'https://quickgasoline.netlify.app',
+          'https://quickgasoline.netlify.com'
         ];
         
-        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
           callback(null, true);
         } else {
           console.warn(`Origen no permitido: ${origin}`);
-          callback(null, true); // Permitir de todos modos en desarrollo
+          callback(null, true); // Permitir de todos modos pero con advertencia
         }
       },
-      credentials: true
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
     }));
     
     // Middleware básico

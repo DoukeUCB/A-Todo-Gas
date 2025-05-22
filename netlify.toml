@@ -1,18 +1,24 @@
-[build]
-  command = "npm run build"
-  publish = "dist"
+# Configuración de Netlify para QuickGasoline
 
-# Redirección para asegurarnos de que el enrutamiento del lado del cliente funcione
+[build]
+  # Directorio que contiene los archivos estáticos a desplegar
+  publish = "public"
+  # Comando de build (no se necesita realmente)
+  command = "echo 'No build step required for static HTML/JS/CSS files'"
+
+# Redirecciones para SPA (aplicación de página única)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  
-# Configuración actualizada de headers para seguridad
+  force = false
+
+# Encabezados de seguridad
 [[headers]]
   for = "/*"
-  [headers.values]
+    [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
-    # Actualizado para permitir la URL de Render
-    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://quickgasoline.onrender.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://quickgasoline.onrender.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

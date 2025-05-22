@@ -7,7 +7,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js --ignore 'public/'",
     "test": "jest",
-    "build": "echo \"No build step required for this project\" && exit 0"
+    "build": "echo \"Deploying static files from /public directory\" && exit 0"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",

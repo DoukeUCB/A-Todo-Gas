@@ -55,18 +55,62 @@ class UserService {
   async login(ci, password) {
     await this.initialize();
     try {
-      const user = await this.userRepository.findByCI(ci);
+      console.log(`Intentando login con CI: "${ci}" (${typeof ci})`);
+      
+      // Si CI es numérico pero viene como string, intentar convertirlo
+      const ciToUse = ci.toString();
+      
+      // Intentar encontrar el usuario
+      const user = await this.userRepository.findByCI(ciToUse);
+      console.log('Resultado de búsqueda de usuario:', user ? 'encontrado' : 'no encontrado');
+      
+      // Depurar la estructura del usuario encontrado
+      if (user) {
+        console.log('Datos del usuario encontrado:', {
+          id: user.id,
+          fullName: user.fullName,
+          ci: user.ci,
+          email: user.email,
+          role: user.role,
+        });
+      }
+      
       if (!user) {
+        // Intentar un diagnóstico más profundo
+        console.log('Diagnóstico de base de datos:');
+        try {
+          // Verificar si hay usuarios en la colección
+          const db = await getDatabase();
+          const userCount = await db.collection('users').countDocuments();
+          console.log(`Total de usuarios en la base de datos: ${userCount}`);
+          
+          // Mostrar una muestra de usuarios para diagnóstico
+          if (userCount > 0) {
+            const sampleUsers = await db.collection('users')
+              .find({}, { projection: { ci: 1, email: 1, _id: 1 } })
+              .limit(5)
+              .toArray();
+            
+            console.log('Muestra de usuarios existentes:', 
+              sampleUsers.map(u => ({id: u._id, ci: u.ci, email: u.email})));
+          }
+        } catch (diagError) {
+          console.error('Error en el diagnóstico:', diagError);
+        }
+        
         throw new Error('Usuario no encontrado');
       }
       
+      // Verificar la contraseña
       const passwordMatch = await bcrypt.compare(password, user.password);
       if (!passwordMatch) {
         throw new Error('Contraseña incorrecta');
       }
       
+      console.log(`Login exitoso para usuario ${user.fullName} (${user.id})`);
       return user;
     } catch (error) {
+      console.error('Error en el login:', error);
       throw error;
     }
   }

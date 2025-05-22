@@ -1,68 +1,118 @@
 /**
  * Configuración de la API para el frontend
+ * Detecta automáticamente si estamos en desarrollo local o producción
  */
 const API_CONFIG = {
-  // URL base de la API en producción - URL confirmada en Render
-  // URL base de la API en producción
-  baseURL: 'https://quickgasoline.onrender.com',
+  // URL base para producción (vacía significa usar la URL relativa al host actual)
+  prodURL: '',
   
-  // Si estamos en desarrollo local, usar la API local
+  // URL base para desarrollo local
+  devURL: 'http://localhost:3000',
+  
+  /**
+   * Determina automáticamente la URL base según el entorno
+   * @returns {string} URL base para las solicitudes API
+   */
   getBaseURL: function() {
     // Detectar si estamos en desarrollo (localhost) o producción
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:10000';
-    }
-    return this.baseURL;
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' ||
+                        window.location.hostname.includes('192.168.');
+    
+    const baseURL = isLocalhost ? this.devURL : this.prodURL;
+    console.log(`API_CONFIG: Usando ${isLocalhost ? 'entorno DEV' : 'entorno PROD'} - ${baseURL}`);
+    return baseURL;
   },
   
-  // Construir una URL completa para la API
-  buildURL: function(endpoint) {
-    return `${this.getBaseURL()}${endpoint}`;
-  },
-  
-  // Headers comunes para todas las solicitudes
-  getHeaders: function() {
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+  /**
+   * Método para realizar solicitudes a la API con manejo de errores mejorado
+   * @param {string} endpoint - Endpoint a llamar (ej: '/api/users/login')
+   * @param {Object} options - Opciones para fetch (method, headers, body, etc)
+   * @returns {Promise<any>} Datos de la respuesta
+   */
+  async fetchAPI(endpoint, options = {}) {
+    const defaultOptions = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin' // Para cookies en el mismo origen
     };
-  },
-  
-  // Función para solicitudes fetch con manejo de errores consistente
-  fetchAPI: async function(endpoint, options = {}) {
-    const url = this.buildURL(endpoint);
-    const headers = this.getHeaders();
     
     const fetchOptions = {
+      ...defaultOptions,
       ...options,
       headers: {
-        ...headers,
-        ...options.headers
+        ...defaultOptions.headers,
+        ...(options.headers || {})
       }
     };
     
     try {
+      // Construir URL completa
+      const baseURL = this.getBaseURL();
+      const url = `${baseURL}${endpoint}`;
+      
+      console.log(`🔄 Enviando solicitud a ${url}`, {
+        method: fetchOptions.method || 'GET',
+        headers: fetchOptions.headers,
+        bodySize: fetchOptions.body ? fetchOptions.body.length : 0
+      });
+      
       const response = await fetch(url, fetchOptions);
       
-      // Si no es OK, convertir a error
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({
-          message: `Error HTTP: ${response.status} ${response.statusText}`
-        }));
+      let data;
+      const contentType = response.headers.get('Content-Type') || '';
+      
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+        console.log(`✅ Respuesta JSON de ${url}:`, {
+          status: response.status,
+          success: data.success,
+          message: data.message
+        });
+      } else {
+        data = await response.text();
+        console.log(`✅ Respuesta texto de ${url}:`, {
+          status: response.status,
+          textLength: data.length
+        });
         
-        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+        // Si parece ser JSON, tratar de parsearlo
+        if (data && (data.trim().startsWith('{') || data.trim().startsWith('['))) {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            console.warn("No se pudo parsear la respuesta como JSON");
+          }
+        }
       }
       
-      return await response.json();
+      // Si la respuesta no es exitosa, lanzar error
+      if (!response.ok) {
+        const errorMsg = data && data.message ? data.message : 'Error en la solicitud';
+        throw new Error(errorMsg);
+      }
+      
+      return data;
     } catch (error) {
-      console.error(`Error en solicitud a ${endpoint}:`, error);
-      
-      // Rethrow con mensaje más claro si es un error de red
-      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-        throw new Error('Error de conexión. Intente nuevamente más tarde.');
+      // Errores de red
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.error('❌ Error de conexión:', error);
+        const baseURL = this.getBaseURL();
+        
+        if (baseURL.includes('localhost')) {
+          throw new Error(`Error de conexión al servidor local (${baseURL}). Asegúrate de que el servidor esté ejecutándose con 'npm run dev'.`);
+        } else {
+          throw new Error('Error de conexión al servidor. Verifica tu conexión a internet.');
+        }
       }
       
+      console.error('❌ Error en solicitud API:', error);
       throw error;
     }
   }
 };
+
+// Log al cargar el script
+console.log('API_CONFIG cargado. URL base:', API_CONFIG.getBaseURL());

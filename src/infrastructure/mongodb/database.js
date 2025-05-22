@@ -1,58 +1,75 @@
 const { MongoClient } = require('mongodb');
 
-let client = null;
-let database = null;
+// Variables para el cliente y la base de datos
+let client;
+let db;
 
-/**
- * Conecta a la base de datos MongoDB
- * @returns {Promise<Object>} Instancia de la base de datos
- */
+// Función para conectarse a la base de datos
 async function connectToDatabase() {
-  if (database) return database;
-  
   try {
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/quickGasoline_db';
+    console.log('Intentando conectar a MongoDB...');
+    
+    // Si ya tenemos una conexión, la usamos
+    if (client && client.topology && client.topology.isConnected()) {
+      console.log('Usando conexión MongoDB existente');
+      return db;
+    }
+    
+    // Verificar si tenemos las variables de entorno necesarias
+    const uri = process.env.MONGODB_URI;
+    const dbName = process.env.DB_NAME;
+    
+    if (!uri) {
+      throw new Error('La variable de entorno MONGODB_URI no está definida');
+    }
+    
+    if (!dbName) {
+      throw new Error('La variable de entorno DB_NAME no está definida');
+    }
+    
+    console.log(`Conectando a MongoDB: ${uri.substring(0, uri.indexOf('@'))+'...'}/${dbName}`);
+    
+    // Crear cliente con opciones mejoradas
     client = new MongoClient(uri, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      connectTimeoutMS: 5000,
+      socketTimeoutMS: 45000
     });
     
+    // Establecer conexión
     await client.connect();
-    console.log('Conectado a MongoDB');
+    console.log('✅ Conexión establecida con MongoDB');
     
-    database = client.db();
-    return database;
+    // Obtener referencia a la base de datos
+    db = client.db(dbName);
+    console.log(`✅ Base de datos seleccionada: ${dbName}`);
+    
+    // Verificar que podamos acceder a las colecciones
+    const collections = await db.listCollections().toArray();
+    console.log(`Colecciones disponibles: ${collections.map(c => c.name).join(', ')}`);
+    
+    return db;
   } catch (error) {
-    console.error('Error al conectar a MongoDB:', error);
+    console.error('❌ Error al conectar con MongoDB:', error.message);
     throw error;
   }
 }
 
-/**
- * Obtiene la instancia de la base de datos
- * @returns {Promise<Object>} Instancia de la base de datos
- */
+// Función para obtener la base de datos
 async function getDatabase() {
-  if (!database) {
-    return connectToDatabase();
+  if (!db) {
+    await connectToDatabase();
   }
-  return database;
+  return db;
 }
 
-/**
- * Cierra la conexión a la base de datos
- */
+// Función para cerrar la conexión
 async function closeDatabase() {
   if (client) {
     await client.close();
-    client = null;
-    database = null;
-    console.log('Conexión a MongoDB cerrada');
+    console.log('Conexión MongoDB cerrada');
   }
 }
 
-module.exports = {
-  connectToDatabase,
-  getDatabase,
-  closeDatabase
-};
+module.exports = { connectToDatabase, getDatabase, closeDatabase };

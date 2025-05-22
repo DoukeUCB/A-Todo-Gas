@@ -1,50 +1,72 @@
-import { spawn } from 'child_process';
-import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 import path from 'path';
+import { spawn } from 'cross-spawn';
 
-// Ejecutar Jest y guardar el resultado en formato JSON
-const runJest = async () => {
-  return new Promise((resolve) => {
-    const jest = spawn('npx', ['jest', '--json', '--outputFile=./script/report.json']);
-    
-    jest.stdout.on('data', (data) => {
-      console.log(data.toString());
-    });
-    
-    jest.stderr.on('data', (data) => {
-      console.error(data.toString());
-    });
-    
-    jest.on('close', (code) => {
-      resolve(code);
+const COMMAND = 'jest';
+const args = ['--json', '--outputFile=./script/report.json'];
+
+function runCommand(command, args) {
+  return new Promise((resolve, reject) => {
+    const process = spawn(command, args, { stdio: 'inherit' });
+    process.on('close', (code) => {
+      resolve();
     });
   });
+}
+
+const readJSONFile = (filePath) => {
+  const rawData = fs.readFileSync(filePath, 'utf-8');
+  return JSON.parse(rawData);
 };
 
-// Función principal
-const main = async () => {
-  try {
-    await runJest();
-    
-    // Asegurar que el archivo report.json existe, incluso si no hay pruebas
-    const reportPath = path.resolve('./script/report.json');
-    try {
-      await fs.access(reportPath);
-    } catch {
-      // Si no existe, crear un archivo vacío
-      await fs.writeFile(reportPath, JSON.stringify({
-        testResults: [],
-        numTotalTests: 0,
-        numTotalTestSuites: 0,
-        numPassedTests: 0,
-        numFailedTests: 0,
-        numPendingTests: 0,
-        success: true
-      }));
-    }
-  } catch (error) {
-    console.error('Error en la ejecución:', error);
+const writeJSONFile = (filePath, data) => {
+  const jsonString = JSON.stringify(data, null, 2);
+  fs.writeFileSync(filePath, jsonString, 'utf-8');
+};
+
+const ensureFileExists = (filePath, initialData) => {
+  if (!fs.existsSync(filePath)) {
+    writeJSONFile(filePath, initialData);
   }
 };
 
-main();
+const extractAndAddObject = async (reportFile, tddLogFile) => {
+  try {
+    await runCommand(COMMAND, args);
+
+    ensureFileExists(tddLogFile, []);
+
+    const jsonData = readJSONFile(reportFile);
+    const passedTests = jsonData.numPassedTests;
+    const failedTests = jsonData.numFailedTests; 
+    const totalTests = jsonData.numTotalTests;
+    const startTime = jsonData.startTime;
+    const success = jsonData.success;
+
+    const newReport = {
+      numPassedTests: passedTests,
+      failedTests: failedTests,
+      numTotalTests: totalTests,
+      timestamp: startTime,
+      success: success
+    };
+
+    const tddLog = readJSONFile(tddLogFile);
+    tddLog.push(newReport);
+
+    writeJSONFile(tddLogFile, tddLog);
+  } catch (error) {
+    console.error("Error en la ejecución:", error);
+  }
+};
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const inputFilePath = path.join(__dirname, 'report.json');
+const outputFilePath = path.join(__dirname, 'tdd_log.json');
+
+extractAndAddObject(inputFilePath, outputFilePath);
+
+export { extractAndAddObject };

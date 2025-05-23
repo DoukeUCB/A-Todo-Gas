@@ -3,12 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - QuickGasoline</title>
+    <link rel="stylesheet" href="/css/styles2.css">
+    <link rel="stylesheet" href="/css/styles3.css">
+    <style>
+        .admin-main {
+            max-width: 600px;
+            margin: 90px auto 0 auto;
+            padding: 32px 24px 24px 24px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .admin-main h1 {
+            color: #2980b9;
+            margin-bottom: 18px;
+            font-size: 2em;
+        }
+        .admin-main p {
+            color: #34495e;
+            margin-bottom: 24px;
+        }
+        .admin-main a, .admin-main button {
+            display: inline-block;
+            margin: 10px 8px 0 8px;
+            padding: 10px 22px;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            cursor: pointer;
+        }
+        .admin-main a {
+            background: #27ae60;
+            color: #fff;
+        }
+        .admin-main a:hover {
+            background: #219150;
+        }
+        .admin-main button {
+            background: #2980b9;
+            color: #fff;
+            border: none;
+        }
+        .admin-main button:hover {
+            background: #2471a3;
+        }
+        @media (max-width: 700px) {
+            .admin-main {
+                margin: 80px 4px 0 4px;
+                padding: 16px 4px 18px 4px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Bienvenido al panel de Gasolinera</h1>
-    <p>Este es el dashboard para administradores.</p>
-    <a href="/dashboard.html">Ir al dashboard general</a>
-    <br><br>
-    <button onclick="window.location.href='/registro-gasolinera.html'">Registrar nueva gasolinera</button>
+    <!-- Navbar fija superior -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/index.html" class="navbar-logo">QuickGasoline</a>
+            <div id="nav-user-info" class="navbar-user"></div>
+        </div>
+    </nav>
+    <div class="admin-main">
+        <h1>Bienvenido al panel de Gasolinera</h1>
+        <p>Este es el dashboard para administradores.</p>
+        <a href="/dashboard.html">Ir al dashboard general</a>
+        <button onclick="window.location.href='/registro-gasolinera.html'">Registrar nueva gasolinera</button>
+    </div>
+    <script>
+        // Navbar: mostrar usuario, dashboard y cerrar sesión
+        document.addEventListener('DOMContentLoaded', function() {
+            const navUserInfo = document.getElementById('nav-user-info');
+            const currentUserData = localStorage.getItem('currentUser');
+            if (currentUserData) {
+                const currentUser = JSON.parse(currentUserData);
+                navUserInfo.innerHTML = `
+                    <span style="margin-right:16px;">${currentUser.fullName}</span>
+                    <a href="/dashboard.html" id="dashboard-btn" style="color:#fff;text-decoration:none;background:#27ae60;padding:6px 14px;border-radius:4px;font-weight:500;margin-right:10px;">Ir al Dashboard</a>
+                    <a href="#" id="logout-btn" style="color:#fff;text-decoration:none;background:#e74c3c;padding:6px 14px;border-radius:4px;font-weight:500;">Cerrar Sesión</a>
+                `;
+                document.getElementById('logout-btn').onclick = function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('currentUser');
+                    window.location.href = '/login.html';
+                };
+            } else {
+                // Si no hay usuario, redirigir a login
+                window.location.href = '/login.html';
+            }
+        });
+    </script>
 </body>
 </html>

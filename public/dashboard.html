@@ -101,7 +101,18 @@
                             dashboardContent.innerHTML = '<h2>Administrar Gasolinera</h2><p>Panel de administración en desarrollo...</p>';
                             break;
                         case 'station-tickets':
-                            dashboardContent.innerHTML = '<h2>Tickets de mi Estación</h2><p>Lista de tickets en desarrollo...</p>';
+                            dashboardContent.innerHTML = `
+                                <h2>Tickets de mi Estación</h2>
+                                <button id="crear-ticket-btn" class="btn btn-success" style="margin-bottom: 16px;">Crear Ticket</button>
+                                <p>Lista de tickets en desarrollo...</p>
+                            `;
+                            // Agregar evento al botón
+                            const btn = document.getElementById('crear-ticket-btn');
+                            if (btn) {
+                                btn.addEventListener('click', function() {
+                                    window.location.href = '/register-ticket.html';
+                                });
+                            }
                             break;
                         default:
                             dashboardContent.innerHTML = '<h2>Contenido no disponible</h2>';

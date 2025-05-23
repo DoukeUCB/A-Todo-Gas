@@ -1,0 +1,130 @@
+/* --- Estilos para el modal y ticket --- */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background: #fff;
+  margin: 5% auto;
+  padding: 24px 32px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  position: relative;
+  animation: modalIn 0.2s;
+}
+
+@keyframes modalIn {
+  from { transform: translateY(-40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close-btn:hover {
+  color: #e74c3c;
+}
+
+#ticketContent {
+  text-align: left;
+}
+#ticketContent h2 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+#ticketContent p {
+  margin: 8px 0;
+  font-size: 1.05em;
+}
+
+/* --- Estilos para el formulario de tickets --- */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f7f7f7;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 32px;
+}
+
+form#ticketForm {
+  background: #fff;
+  max-width: 400px;
+  margin: 32px auto 0 auto;
+  padding: 32px 24px 24px 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+form#ticketForm label {
+  font-weight: 500;
+  color: #34495e;
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+form#ticketForm input[type="text"],
+form#ticketForm select {
+  padding: 8px 10px;
+  border: 1px solid #bfc9d1;
+  border-radius: 5px;
+  font-size: 1em;
+  background: #f9f9f9;
+  transition: border 0.2s;
+}
+
+form#ticketForm input[type="text"]:focus,
+form#ticketForm select:focus {
+  border-color: #2980b9;
+  outline: none;
+  background: #fff;
+}
+
+form#ticketForm button[type="submit"] {
+  margin-top: 12px;
+  padding: 10px 0;
+  background: #2980b9;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+form#ticketForm button[type="submit"]:hover,
+form#ticketForm button[type="submit"]:disabled {
+  background: #2471a3;
+}
+
+#resultado {
+  max-width: 400px;
+  margin: 20px auto 0 auto;
+}

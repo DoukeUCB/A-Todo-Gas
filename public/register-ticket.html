@@ -3,46 +3,214 @@
 <head>
   <meta charset="UTF-8">
   <title>Registrar Ticket</title>
+  <script src="/js/apiConfig.js"></script>
+  <link rel="stylesheet" href="/css/styles2.css">
+  <style>
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #eee;
+      padding: 12px 24px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 9999;
+      font-weight: bold;
+      transition: opacity 0.5s;
+    }
+    .notification-success { color: green; border: 1px solid green; }
+    .notification-error { color: red; border: 1px solid red; }
+    .notification-hide { opacity: 0; }
+    /* Estilos para la barra de navegación */
+    nav {
+      width: 100%;
+      background: #2980b9;
+      color: #fff;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    nav .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 18px;
+    }
+    nav a:last-child {
+      margin-right: 0;
+    }
+    h1 {
+      margin-top: 70px;
+    }
+  </style>
 </head>
 <body>
+  <!-- Navbar fija superior -->
+  <nav>
+    <div class="container">
+      <a href="/index.html" style="font-size:1.3em;font-weight:bold;letter-spacing:1px;">QuickGasoline</a>
+      <div id="nav-user-info">
+        <!-- Aquí se mostrará el nombre del usuario y el botón de cerrar sesión -->
+      </div>
+    </div>
+  </nav>
+
   <h1>Registrar Ticket</h1>
   <form id="ticketForm">
     <label>CI: <input type="text" name="ci" required></label><br>
     <label>Matrícula: <input type="text" name="plate" required></label><br>
-    <label>Número de Ticket: <input type="number" name="ticketNumber" readonly></label><br>
-    <label>ID Estación: <input type="text" name="stationId" required></label><br>
-    <label>Nombre Estación: <input type="text" name="stationName" required></label><br>
+    <label>Gasolinera:
+      <select name="stationSelect" id="stationSelect" required>
+        <option value="">Seleccione una gasolinera</option>
+      </select>
+    </label><br>
+    <!-- Campos ocultos para ID y nombre de estación -->
+    <input type="hidden" name="stationId">
+    <input type="hidden" name="stationName">
     <button type="submit">Registrar</button>
   </form>
   <div id="resultado"></div>
-  <script>
-    let ticketCounter = 1;
 
-    function generarNumeroTicket() {
-      // Puedes mejorar la lógica según tus necesidades (por ejemplo, persistencia)
-      return ticketCounter++;
+  <!-- Modal para el ticket -->
+  <div id="ticketModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close-btn" id="closeTicketModal">&times;</span>
+      <div id="ticketContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // Notificación estilo registro gasolinera
+    function showNotification(type, message) {
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.classList.add('notification-hide');
+        setTimeout(() => notification.remove(), 500);
+      }, 3500);
     }
 
-    // Inicializa el campo con el primer número
-    document.querySelector('input[name="ticketNumber"]').value = generarNumeroTicket();
+    // Cargar gasolineras usando API_CONFIG
+    async function cargarGasolineras() {
+      try {
+        const data = await API_CONFIG.fetchAPI('/api/stations');
+        if (data.success && Array.isArray(data.data)) {
+          const select = document.getElementById('stationSelect');
+          data.data.forEach(station => {
+            const option = document.createElement('option');
+            option.value = station.id || station._id;
+            option.textContent = station.name;
+            option.dataset.stationName = station.name;
+            select.appendChild(option);
+          });
+        }
+      } catch (e) {
+        showNotification('error', 'Error al cargar gasolineras');
+      }
+    }
 
-    document.getElementById('ticketForm').onsubmit = function(e) {
+    cargarGasolineras();
+
+    // Actualiza los campos ocultos al seleccionar una estación
+    document.getElementById('stationSelect').addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      document.querySelector('input[name="stationId"]').value = selectedOption.value;
+      document.querySelector('input[name="stationName"]').value = selectedOption.dataset.stationName || '';
+    });
+
+    document.getElementById('ticketForm').onsubmit = async function(e) {
       e.preventDefault();
       const form = e.target;
-      const data = {
-        id: Date.now().toString(),
-        ci: form.ci.value,
-        plate: form.plate.value,
-        ticketNumber: parseInt(form.ticketNumber.value),
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Generando ticket...";
+
+      // Validar selección de gasolinera
+      if (!form.stationId.value) {
+        showNotification('error', 'Seleccione una gasolinera');
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Registrar";
+        return;
+      }
+
+      // Obtener y actualizar el número de ticket secuencial desde localStorage
+      let ticketNumber = parseInt(localStorage.getItem('ticketNumber') || '1', 10);
+      localStorage.setItem('ticketNumber', (ticketNumber + 1).toString());
+
+      // Preparar datos para el ticket
+      const ticketData = {
+        ci: form.ci.value.trim(),
+        plate: form.plate.value.trim().toUpperCase(),
         stationId: form.stationId.value,
         stationName: form.stationName.value,
-        createdAt: new Date()
+        ticketNumber
       };
-      // Simulación de creación de ticket (solo frontend)
-      document.getElementById('resultado').innerText = 'Ticket registrado:\n' + JSON.stringify(data, null, 2);
-      // Genera el siguiente número de ticket para el próximo registro
-      form.ticketNumber.value = generarNumeroTicket();
+
+      // Mostrar el ticket en el modal
+      const ticketContent = document.getElementById('ticketContent');
+      ticketContent.innerHTML = `
+        <h2>Ticket de Venta</h2>
+        <p><strong>N° Ticket:</strong> ${ticketData.ticketNumber}</p>
+        <p><strong>CI:</strong> ${ticketData.ci}</p>
+        <p><strong>Matrícula:</strong> ${ticketData.plate}</p>
+        <p><strong>Gasolinera:</strong> ${ticketData.stationName}</p>
+        <p><strong>ID Gasolinera:</strong> ${ticketData.stationId}</p>
+        <p><em>Fecha:</em> ${new Date().toLocaleString()}</p>
+      `;
+      document.getElementById('ticketModal').style.display = 'block';
+      showNotification('success', 'Ticket generado correctamente');
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Registrar";
     };
+
+    // Cerrar el modal
+    document.getElementById('closeTicketModal').onclick = function() {
+      document.getElementById('ticketModal').style.display = 'none';
+    };
+    // Cerrar modal al hacer click fuera del contenido
+    window.onclick = function(event) {
+      const modal = document.getElementById('ticketModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    };
+
+    // Navbar: mostrar usuario, dashboard y cerrar sesión
+    document.addEventListener('DOMContentLoaded', function() {
+      const navUserInfo = document.getElementById('nav-user-info');
+      const currentUserData = localStorage.getItem('currentUser');
+      if (currentUserData) {
+        const currentUser = JSON.parse(currentUserData);
+        navUserInfo.innerHTML = `
+          <span style="margin-right:16px;">${currentUser.fullName}</span>
+          <a href="/dashboard.html" id="dashboard-btn" style="color:#fff;text-decoration:none;background:#27ae60;padding:6px 14px;border-radius:4px;font-weight:500;margin-right:10px;">Ir al Dashboard</a>
+          <a href="#" id="logout-btn" style="color:#fff;text-decoration:none;background:#e74c3c;padding:6px 14px;border-radius:4px;font-weight:500;">Cerrar Sesión</a>
+        `;
+        document.getElementById('logout-btn').onclick = function(e) {
+          e.preventDefault();
+          localStorage.removeItem('currentUser');
+          window.location.href = '/login.html';
+        };
+      } else {
+        // Si no hay usuario, redirigir a login
+        window.location.href = '/login.html';
+      }
+    });
   </script>
 </body>
 </html>

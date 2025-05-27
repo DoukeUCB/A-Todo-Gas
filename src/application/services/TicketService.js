@@ -1,116 +1,78 @@
 const { v4: uuidv4 } = require('uuid');
-const Ticket = require('../../domain/entities/Ticket');
-const { getDatabase } = require('../../infrastructure/mongodb/database');
+const TicketRepository = require('../../domain/repositories/TicketRepository');
+const GasStationRepository = require('../../domain/repositories/GasStationRepository');
 
 class TicketService {
   constructor() {
-    this.collection = null;
-    this._initPromise = null;
+    this.ticketRepository = new TicketRepository();
+    this.gasStationRepository = new GasStationRepository();
   }
-  
-  /**
-   * Inicializa el servicio asegurándose de que la base de datos esté disponible
-   * @returns {Promise<void>}
-   */
+
   async initialize() {
-    if (!this._initPromise) {
-      this._initPromise = this._init();
-    }
-    return this._initPromise;
-  }
-  
-  /**
-   * Inicializa internamente la colección
-   * @private
-   */
-  async _init() {
     try {
-      const db = await getDatabase();
-      this.collection = db.collection('tickets');
+      // Asegurarnos de que las inicializaciones se ejecuten correctamente
+      await this.ticketRepository.initialize();
+      await this.gasStationRepository.initialize();
+      console.log('Servicio de tickets inicializado correctamente');
     } catch (error) {
-      console.error('Error al inicializar TicketService:', error);
+      console.error('Error al inicializar el servicio de tickets:', error);
       throw error;
     }
   }
-  
+
   async createTicket(ticketData) {
-    await this.initialize();
     try {
-      // Obtener el siguiente número de ticket para esta estación
-      const lastTicket = await this.collection.findOne(
-        { stationId: ticketData.stationId },
-        { sort: { ticketNumber: -1 } }
+      // Generar un UUID único para el ticket
+      const ticketId = uuidv4();
+      
+      // Obtener la gasolinera y su contador de tickets
+      const gasStation = await this.gasStationRepository.findById(ticketData.stationId);
+      if (!gasStation) {
+        throw new Error('La gasolinera no existe');
+      }
+      
+      // Incrementar el contador de tickets para esta gasolinera
+      const ticketNumber = gasStation.ticketCount + 1;
+      
+      // Actualizar el contador en la gasolinera
+      await this.gasStationRepository.update(
+        ticketData.stationId, 
+        { ticketCount: ticketNumber }
       );
       
-      const nextTicketNumber = lastTicket ? lastTicket.ticketNumber + 1 : 1;
-      
-      const ticketToCreate = {
-        id: uuidv4(),
+      // Crear el objeto ticket con todos los campos requeridos por el esquema
+      const ticket = {
+        _id: ticketId,
         ci: ticketData.ci,
         plate: ticketData.plate.toUpperCase(),
-        ticketNumber: nextTicketNumber,
+        ticketNumber: ticketNumber,
         stationId: ticketData.stationId,
         stationName: ticketData.stationName,
+        requestedLiters: parseFloat(ticketData.requestedLiters) || 0,
         createdAt: new Date()
       };
       
-      const ticket = new Ticket(ticketToCreate);
+      console.log('Creando ticket con datos:', ticket);
       
-      // Convertir a documento MongoDB
-      const ticketDoc = {
-        _id: ticket.id,
-        ci: ticket.ci,
-        plate: ticket.plate,
-        ticketNumber: ticket.ticketNumber,
-        stationId: ticket.stationId,
-        stationName: ticket.stationName,
-        createdAt: ticket.createdAt
-      };
-      
-      await this.collection.insertOne(ticketDoc);
-      
-      return ticket;
+      // Guardar el ticket en la base de datos
+      const createdTicket = await this.ticketRepository.create(ticket);
+      return createdTicket;
     } catch (error) {
+      console.error('Error al crear ticket:', error);
       throw error;
     }
   }
-  
+
   async getTicketsByUserCI(ci) {
-    await this.initialize();
-    try {
-      const ticketDocs = await this.collection.find({ ci }).sort({ createdAt: -1 }).toArray();
-      
-      return ticketDocs.map(doc => new Ticket({
-        id: doc._id,
-        ci: doc.ci,
-        plate: doc.plate,
-        ticketNumber: doc.ticketNumber,
-        stationId: doc.stationId,
-        stationName: doc.stationName,
-        createdAt: doc.createdAt
-      }));
-    } catch (error) {
-      throw error;
-    }
+    return this.ticketRepository.findByUserCI(ci);
   }
-  
+
   async getTicketsByStationId(stationId) {
-    await this.initialize();
-    try {
-      const ticketDocs = await this.collection.find({ stationId }).sort({ ticketNumber: 1 }).toArray();
-      
-      return ticketDocs.map(doc => new Ticket({
-        id: doc._id,
-        ci: doc.ci,
-        plate: doc.plate,
-        ticketNumber: doc.ticketNumber,
-        stationId: doc.stationId,
-        stationName: doc.stationName,
-        createdAt: doc.createdAt
-      }));
-    } catch (error) {
-      throw error;
-    }
+    return this.ticketRepository.findByStationId(stationId);
+  }
+
+  async getTicketById(ticketId) {
+    return this.ticketRepository.findById(ticketId);
   }
 }
 

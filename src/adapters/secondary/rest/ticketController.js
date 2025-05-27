@@ -1,19 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const TicketService = require('../../../application/services/TicketService');
-
 const GasStationService = require('../../../application/services/GasStationService');
 
 const ticketService = new TicketService();
 const gasStationService = new GasStationService();
 
 // Inicializar servicios
-Promise.all([
-  ticketService.initialize(),
-  gasStationService.initialize()
-])
-.then(() => console.log('Servicios de Tickets y Gasolineras inicializados correctamente'))
-.catch(err => console.error('Error al inicializar servicios:', err));
+(async () => {
+  try {
+    await ticketService.initialize();
+    await gasStationService.initialize();
+    console.log('Servicios de Tickets y Gasolineras inicializados correctamente');
+  } catch (err) {
+    console.error('Error al inicializar servicios:', err);
+  }
+})();
 
 // Endpoint para crear un nuevo ticket
 router.post('/', async (req, res) => {

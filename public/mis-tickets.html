@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Tickets - QuickGasoline</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/apiConfig.js"></script>
+    <style>
+        .tickets-container {
+            margin-top: 2rem;
+        }
+        
+        .ticket-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .ticket-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .ticket-number {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .ticket-date {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .ticket-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .ticket-body p {
+            margin: 0.4rem 0;
+        }
+        
+        .ticket-actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+        }
+        
+        .empty-tickets {
+            text-align: center;
+            padding: 3rem 1rem;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        .empty-tickets img {
+            max-width: 120px;
+            margin-bottom: 1.5rem;
+            opacity: 0.6;
+        }
+        
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-bar select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .loading-container {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .ticket-qr {
+            text-align: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #ddd;
+        }
+        
+        .ticket-qr img {
+            max-width: 120px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="container">
+            <div class="logo">
+                <a href="/">QuickGasoline</a>
+            </div>
+            <nav class="main-nav">
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/gasolineras-disponibles.html">Gasolineras</a>
+                <a href="/register-ticket.html">Registrar Ticket</a>
+                <a href="/mis-tickets.html" class="active">Mis Tickets</a>
+            </nav>
+            <div class="user-info" id="user-info">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Mis Tickets</h1>
+        <p>Historial de tickets solicitados para obtención de combustible</p>
+        
+        <div class="filter-bar">
+            <select id="filter-station">
+                <option value="">Todas las gasolineras</option>
+                <!-- Se llenará dinámicamente -->
+            </select>
+            
+            <select id="filter-date">
+                <option value="all">Cualquier fecha</option>
+                <option value="today">Hoy</option>
+                <option value="week">Esta semana</option>
+                <option value="month">Este mes</option>
+            </select>
+            
+            <button id="refresh-btn" class="btn btn-secondary">
+                <i class="icon-refresh"></i> Actualizar
+            </button>
+        </div>
+        
+        <div id="tickets-container" class="tickets-container">
+            <div class="loading-container">
+                <p>Cargando tickets...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para detalles del ticket -->
+    <div id="ticket-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <div id="ticket-detail-content"></div>
+            <div class="ticket-actions">
+                <button class="btn btn-primary" id="print-ticket">Imprimir</button>
+                <button class="btn btn-secondary" id="close-detail">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 QuickGasoline. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si hay un usuario logueado
+            const userInfo = document.getElementById('user-info');
+            const currentUserData = localStorage.getItem('currentUser');
+            
+            if (!currentUserData) {
+                // Redirigir al login si no hay usuario
+                window.location.href = '/login.html?redirect=mis-tickets.html';
+                return;
+            }
+            
+            const currentUser = JSON.parse(currentUserData);
+            
+            // Mostrar información del usuario
+            userInfo.innerHTML = `
+                <span>Hola, ${currentUser.fullName}</span>
+                <a href="#" id="logout-btn">Cerrar Sesión</a>
+            `;
+            
+            // Configurar botón de logout
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                localStorage.removeItem('currentUser');
+                window.location.href = '/login.html';
+            });
+            
+            // Cargar tickets del usuario
+            loadUserTickets();
+            
+            // Configurar botón de actualizar
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                loadUserTickets();
+            });
+            
+            // Configurar filtros
+            document.getElementById('filter-station').addEventListener('change', applyFilters);
+            document.getElementById('filter-date').addEventListener('change', applyFilters);
+            
+            // Cerrar modal
+            document.getElementById('close-modal').addEventListener('click', function() {
+                document.getElementById('ticket-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-detail').addEventListener('click', function() {
+                document.getElementById('ticket-modal').style.display = 'none';
+            });
+            
+            // Imprimir ticket
+            document.getElementById('print-ticket').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Función para cargar tickets del usuario
+            async function loadUserTickets() {
+                const container = document.getElementById('tickets-container');
+                container.innerHTML = '<div class="loading-container"><p>Cargando tickets...</p></div>';
+                
+                try {
+                    const response = await API_CONFIG.fetchAPI('/api/tickets/user/' + currentUser.ci);
+                    
+                    if (response.success) {
+                        const tickets = response.data;
+                        
+                        // Llenar selector de gasolineras para filtro
+                        const stationFilter = document.getElementById('filter-station');
+                        const stations = new Set();
+                        
+                        tickets.forEach(ticket => {
+                            stations.add(ticket.stationName);
+                        });
+                        
+                        stationFilter.innerHTML = '<option value="">Todas las gasolineras</option>';
+                        stations.forEach(station => {
+                            const option = document.createElement('option');
+                            option.value = station;
+                            option.textContent = station;
+                            stationFilter.appendChild(option);
+                        });
+                        
+                        // Renderizar tickets
+                        renderTickets(tickets);
+                    } else {
+                        throw new Error(response.message || 'Error al cargar tickets');
+                    }
+                } catch (error) {
+                    console.error('Error al cargar tickets:', error);
+                    container.innerHTML = `
+                        <div class="error-message">
+                            Error al cargar tickets: ${error.message}
+                            <button id="retry-btn" class="btn btn-primary" style="margin-top: 1rem;">Intentar de nuevo</button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('retry-btn').addEventListener('click', loadUserTickets);
+                }
+            }
+            
+            // Función para renderizar tickets
+            function renderTickets(tickets) {
+                const container = document.getElementById('tickets-container');
+                
+                if (!tickets || tickets.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-tickets">
+                            <img src="/img/empty-tickets.svg" alt="No hay tickets" onerror="this.src='/img/empty-state.png'; this.onerror=null;">
+                            <h3>No tienes tickets</h3>
+                            <p>Aún no has solicitado tickets de combustible</p>
+                            <a href="/register-ticket.html" class="btn btn-primary">Solicitar un Ticket</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Ordenar tickets por fecha, más recientes primero
+                tickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                const ticketsHTML = tickets.map(ticket => `
+                    <div class="ticket-card" data-ticket-id="${ticket.id}" data-station="${ticket.stationName}" data-date="${new Date(ticket.createdAt).toISOString()}">
+                        <div class="ticket-header">
+                            <span class="ticket-number">Ticket #${ticket.ticketNumber}</span>
+                            <span class="ticket-date">${formatDate(ticket.createdAt)}</span>
+                        </div>
+                        <div class="ticket-body">
+                            <div>
+                                <p><strong>Gasolinera:</strong> ${ticket.stationName}</p>
+                                <p><strong>Matrícula:</strong> ${ticket.plate}</p>
+                            </div>
+                            <div>
+                                <p><strong>Litros:</strong> ${ticket.requestedLiters || 'No especificado'}</p>
+                                <p><strong>Estado:</strong> <span class="badge badge-success">Activo</span></p>
+                            </div>
+                        </div>
+                        <div class="ticket-actions">
+                            <button class="btn btn-primary btn-sm view-ticket" data-ticket-id="${ticket.id}">Ver Detalles</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = ticketsHTML;
+                
+                // Agregar event listeners a los botones de ver detalles
+                document.querySelectorAll('.view-ticket').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const ticketId = this.dataset.ticketId;
+                        const ticket = tickets.find(t => t.id === ticketId);
+                        
+                        if (ticket) {
+                            showTicketDetails(ticket);
+                        }
+                    });
+                });
+            }
+            
+            // Función para mostrar detalles del ticket
+            function showTicketDetails(ticket) {
+                const modalContent = document.getElementById('ticket-detail-content');
+                
+                modalContent.innerHTML = `
+                    <h2>Ticket de Combustible</h2>
+                    <div class="ticket-details">
+                        <p><strong>N° Ticket:</strong> ${ticket.ticketNumber}</p>
+                        <p><strong>Fecha:</strong> ${new Date(ticket.createdAt).toLocaleString()}</p>
+                        <p><strong>Gasolinera:</strong> ${ticket.stationName}</p>
+                        <p><strong>CI:</strong> ${ticket.ci}</p>
+                        <p><strong>Matrícula:</strong> ${ticket.plate}</p>
+                        <p><strong>Litros:</strong> ${ticket.requestedLiters || 'No especificado'}</p>
+                    </div>
+                    <div class="ticket-qr">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`TICKET:${ticket.id}`)}" alt="QR Code">
+                        <p>Muestre este código en la gasolinera para recargar</p>
+                    </div>
+                `;
+                
+                document.getElementById('ticket-modal').style.display = 'block';
+            }
+            
+            // Función para aplicar filtros
+            function applyFilters() {
+                const stationFilter = document.getElementById('filter-station').value;
+                const dateFilter = document.getElementById('filter-date').value;
+                
+                const ticketCards = document.querySelectorAll('.ticket-card');
+                
+                ticketCards.forEach(card => {
+                    let showCard = true;
+                    
+                    // Filtrar por estación
+                    if (stationFilter && card.dataset.station !== stationFilter) {
+                        showCard = false;
+                    }
+                    
+                    // Filtrar por fecha
+                    if (showCard && dateFilter !== 'all') {
+                        const ticketDate = new Date(card.dataset.date);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        if (dateFilter === 'today' && ticketDate < today) {
+                            showCard = false;
+                        } else if (dateFilter === 'week') {
+                            const weekStart = new Date(today);
+                            weekStart.setDate(today.getDate() - today.getDay());
+                            if (ticketDate < weekStart) {
+                                showCard = false;
+                            }
+                        } else if (dateFilter === 'month') {
+                            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                            if (ticketDate < monthStart) {
+                                showCard = false;
+                            }
+                        }
+                    }
+                    
+                    card.style.display = showCard ? '' : 'none';
+                });
+                
+                // Verificar si hay resultados visibles
+                const visibleCards = Array.from(ticketCards).filter(card => card.style.display !== 'none');
+                
+                if (visibleCards.length === 0) {
+                    const container = document.getElementById('tickets-container');
+                    const noResultsMsg = document.querySelector('.no-results-message');
+                    
+                    if (!noResultsMsg) {
+                        const message = document.createElement('div');
+                        message.className = 'info-message no-results-message';
+                        message.textContent = 'No se encontraron tickets que coincidan con los filtros seleccionados';
+                        container.appendChild(message);
+                    }
+                } else {
+                    const noResultsMsg = document.querySelector('.no-results-message');
+                    if (noResultsMsg) {
+                        noResultsMsg.remove();
+                    }
+                }
+            }
+            
+            // Función para formatear fechas
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -25,7 +25,23 @@ class MockUserRepository {
 describe('CreateUserUseCase', () => {
   let userRepository;
   let createUserUseCase;
-  
+  let originalConsoleError;
+  let originalConsoleLog;
+
+  beforeAll(() => {
+    // Mock console.error y console.log para evitar mensajes en los tests
+    originalConsoleError = console.error;
+    originalConsoleLog = console.log;
+    console.error = jest.fn();
+    console.log = jest.fn();
+  });
+
+  afterAll(() => {
+    // Restaurar los métodos originales
+    console.error = originalConsoleError;
+    console.log = originalConsoleLog;
+  });
+
   beforeEach(() => {
     userRepository = new MockUserRepository();
     createUserUseCase = new CreateUserUseCase(userRepository);

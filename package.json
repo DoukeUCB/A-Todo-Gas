@@ -18,6 +18,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "cypress": "^14.4.0",
     "jest": "^29.4.3",
     "nodemon": "^2.0.20"
   },

@@ -1,4 +1,5 @@
 const CreateGasStationUseCase = require('../use_cases/CreateGasStationUseCase');
+const GetAvailableGasStationsUseCase = require('../use_cases/GetAvailableGasStationsUseCase');
 const MongoGasStationRepository = require('../../infrastructure/mongodb/MongoGasStationRepository');
 const { getDatabase } = require('../../infrastructure/mongodb/database');
 
@@ -6,6 +7,7 @@ class GasStationService {
   constructor() {
     this.gasStationRepository = null;
     this.createGasStationUseCase = null;
+    this.getAvailableGasStationsUseCase = null;
     this._initPromise = null;
   }
   
@@ -29,6 +31,7 @@ class GasStationService {
       const db = await getDatabase();
       this.gasStationRepository = new MongoGasStationRepository(db);
       this.createGasStationUseCase = new CreateGasStationUseCase(this.gasStationRepository);
+      this.getAvailableGasStationsUseCase = new GetAvailableGasStationsUseCase(this.gasStationRepository);
     } catch (error) {
       console.error('Error al inicializar GasStationService:', error);
       throw error;
@@ -71,6 +74,16 @@ class GasStationService {
     try {
       return await this.gasStationRepository.findAll();
     } catch (error) {
+      throw error;
+    }
+  }
+  
+  async getAvailableStations() {
+    await this.initialize();
+    try {
+      return await this.getAvailableGasStationsUseCase.execute();
+    } catch (error) {
+      console.error('Error al obtener gasolineras disponibles:', error);
       throw error;
     }
   }

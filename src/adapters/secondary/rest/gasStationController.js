@@ -126,4 +126,24 @@ router.put('/:stationId', async (req, res) => {
   }
 });
 
+// Endpoint para obtener gasolineras disponibles con combustible
+router.get('/available', async (req, res) => {
+  try {
+    console.log('Obteniendo gasolineras disponibles con combustible');
+    
+    const availableStations = await gasStationService.getAvailableStations();
+    
+    res.status(200).json({
+      success: true,
+      data: availableStations
+    });
+  } catch (error) {
+    console.error('Error en endpoint GET /available:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error al obtener las gasolineras disponibles'
+    });
+  }
+});
+
 module.exports = router;

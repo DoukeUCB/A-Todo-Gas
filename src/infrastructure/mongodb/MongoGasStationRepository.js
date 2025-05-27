@@ -77,6 +77,30 @@ class MongoGasStationRepository {
   }
 
   /**
+   * Mapea un documento de MongoDB a un objeto de dominio GasStation
+   * @private
+   * @param {Object} doc - Documento de MongoDB
+   * @returns {GasStation|null} Objeto de dominio o null si doc es null
+   */
+  _mapToEntity(doc) {
+    if (!doc) return null;
+    
+    // Convertir el documento de MongoDB a un objeto GasStation
+    return new GasStation({
+      id: doc._id,
+      stationNumber: doc.stationNumber,
+      name: doc.name,
+      address: doc.address,
+      openTime: doc.openTime,
+      closeTime: doc.closeTime,
+      managerCi: doc.managerCi,
+      currentLevel: doc.currentLevel || 0,
+      available: doc.available || false,
+      ticketCount: doc.ticketCount || 0
+    });
+  }
+
+  /**
    * Crea una nueva gasolinera en la base de datos
    * @param {GasStation} gasStation - Entidad de gasolinera del dominio
    * @returns {Promise<GasStation>} Gasolinera creada con ID generado
@@ -142,12 +166,21 @@ class MongoGasStationRepository {
   }
 
   /**
-   * Obtiene todas las gasolineras
+   * Encuentra todas las gasolineras
    * @returns {Promise<Array<GasStation>>} Lista de gasolineras
    */
   async findAll() {
-    const docs = await this.collection.find({}).toArray();
-    return docs.map(doc => this._toEntity(doc));
+    try {
+      console.log('Buscando todas las gasolineras en la base de datos');
+      const stationDocs = await this.collection.find({}).toArray();
+      console.log(`Se encontraron ${stationDocs.length} gasolineras en la base de datos`);
+      
+      // Mapear los documentos a objetos de dominio
+      return stationDocs.map(doc => this._mapToEntity(doc));
+    } catch (error) {
+      console.error('Error al buscar todas las gasolineras:', error);
+      throw error;
+    }
   }
 
   /**

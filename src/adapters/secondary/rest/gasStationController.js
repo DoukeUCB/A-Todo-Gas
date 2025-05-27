@@ -53,6 +53,28 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Endpoint para obtener gasolineras disponibles con combustible
+// IMPORTANTE: Esta ruta debe estar ANTES de la ruta por ID
+router.get('/available', async (req, res) => {
+  try {
+    console.log('Obteniendo gasolineras disponibles con combustible');
+    
+    const availableStations = await gasStationService.getAvailableStations();
+    console.log(`Se encontraron ${availableStations.length} gasolineras disponibles`);
+    
+    res.status(200).json({
+      success: true,
+      data: availableStations
+    });
+  } catch (error) {
+    console.error('Error en endpoint GET /available:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error al obtener las gasolineras disponibles'
+    });
+  }
+});
+
 // Endpoint para obtener una gasolinera por CI del administrador
 // IMPORTANTE: Esta ruta debe estar antes de la ruta por ID
 router.get('/manager/:managerCi', async (req, res) => {
@@ -122,26 +144,6 @@ router.put('/:stationId', async (req, res) => {
     res.status(400).json({
       success: false,
       message: error.message || 'Error al actualizar la gasolinera'
-    });
-  }
-});
-
-// Endpoint para obtener gasolineras disponibles con combustible
-router.get('/available', async (req, res) => {
-  try {
-    console.log('Obteniendo gasolineras disponibles con combustible');
-    
-    const availableStations = await gasStationService.getAvailableStations();
-    
-    res.status(200).json({
-      success: true,
-      data: availableStations
-    });
-  } catch (error) {
-    console.error('Error en endpoint GET /available:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Error al obtener las gasolineras disponibles'
     });
   }
 });

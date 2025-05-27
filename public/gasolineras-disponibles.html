@@ -86,11 +86,16 @@
                 container.innerHTML = '<div class="loading">Cargando gasolineras disponibles...</div>';
                 
                 try {
+                    console.log('Solicitando gasolineras disponibles...');
+                    
                     // Utilizar el endpoint específico para gasolineras disponibles
                     const response = await API_CONFIG.fetchAPI('/api/stations/available');
                     
+                    console.log('Respuesta recibida:', response);
+                    
                     if (response.success) {
                         const stations = response.data;
+                        console.log(`Se recibieron ${stations.length} gasolineras disponibles`);
                         
                         if (stations.length === 0) {
                             container.innerHTML = `
@@ -123,6 +128,7 @@
                         
                         container.innerHTML = stationsHtml;
                     } else {
+                        console.error('Error en la respuesta:', response.message);
                         container.innerHTML = `
                             <div class="error-message">
                                 ${response.message || 'Error al cargar las gasolineras disponibles'}

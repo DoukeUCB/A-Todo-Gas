@@ -63,5 +63,25 @@
     "commitId": "b6dbe6fad710da9ee824a3fff5db907cae017d92",
     "commitName": "FEAT: Add server in render",
     "commitTimestamp": 1747725741031
+  },
+  {
+    "commitId": "a3773c87963c56564f31369308f79503e70837bf",
+    "commitName": "FIX: Deploy Netlify with cors",
+    "commitTimestamp": 1747945213140
+  },
+  {
+    "commitId": "aadd1ce07352f23f84598e5710764be6bb24aab1",
+    "commitName": "FEAT: Add tests for available gasoline stations",
+    "commitTimestamp": 1748325667702
+  },
+  {
+    "commitId": "2a80b251bcfd67269a9bf99e476669802aef99f7",
+    "commitName": "FEAT: Add tests BL for avaiable gasoline",
+    "commitTimestamp": 1748325700574
+  },
+  {
+    "commitId": "87f54a98649fd3f3257ee6f471fa9e162d802567",
+    "commitName": "FEAT: Add view for available stations",
+    "commitTimestamp": 1748325734124
   }
 ]

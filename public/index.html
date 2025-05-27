@@ -3,24 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickGasoline - Sistema de tickets para gasolineras</title>
+    <title>QuickGasoline - Sistema inteligente para gasolineras</title>
     <link rel="stylesheet" href="/css/styles.css">
     <style>
-        /* Estilos adicionales específicos para este archivo */
-        .message-container {
-            margin: 20px auto;
-            max-width: 800px;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
+        /* Estilos mejorados para la página principal */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --text-color: #333;
+            --border-radius: 8px;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f9f9f9;
+            margin: 0;
+        }
+        
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color), #1a6ca4);
+            color: white;
+            padding: 1rem 0;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
+        .logo h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.2rem;
+        }
+        
+        .logo p {
+            margin-top: 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('/img/gas-station-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 5rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .feature-card h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .step {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .step-number {
+            background-color: var(--primary-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
         .api-status {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: #e8f4fd;
-            border-left: 4px solid #3498db;
+            margin: 2rem auto;
+            max-width: 800px;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin: 2rem 0;
+            color: var(--dark-color);
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            border: none;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #27ae60;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .main-menu {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .main-footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h2 {
+                font-size: 2rem;
+            }
+            
+            .features-grid, .steps {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -29,7 +228,7 @@
         <div class="container">
             <div class="logo">
                 <h1>QuickGasoline</h1>
-                <p>Sistema de tickets para gasolineras</p>
+                <p>Sistema inteligente para gestión de combustible</p>
             </div>
             <nav class="main-menu">
                 <a href="/login.html" class="btn btn-primary">Iniciar Sesión</a>
@@ -41,80 +240,80 @@
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <h2>La manera más rápida de evitar filas en gasolineras</h2>
-                <p>Solicita tu ticket desde cualquier lugar y ahorra tiempo valioso</p>
+                <h2>La solución definitiva para el abastecimiento de combustible</h2>
+                <p>QuickGasoline simplifica la distribución de combustible permitiendo solicitar tickets digitales y monitorear gasolineras disponibles en tiempo real</p>
                 <div class="hero-buttons">
-                    <a href="/login.html" class="btn btn-primary">Comenzar Ahora</a>
-                    <a href="#how-it-works" class="btn btn-secondary">Cómo Funciona</a>
+                    <a href="/login.html" class="btn btn-primary">Iniciar Sesión</a>
+                    <a href="/registro.html" class="btn btn-secondary">Crear Cuenta</a>
+                    <a href="#features" class="btn">Conocer Más</a>
                 </div>
             </div>
         </div>
     </section>
+        
+        <section id="features">
+            <h2 class="section-title">Funcionalidades Principales</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Gasolineras Disponibles</h3>
+                    <p>Visualiza en tiempo real qué gasolineras tienen combustible disponible, evitando viajes innecesarios.</p>
+                    <a href="/login.html?redirect=gasolineras-disponibles.html" class="btn btn-primary">Ver Gasolineras</a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎫</div>
+                    <h3>Tickets Digitales</h3>
+                    <p>Solicita tickets digitales para tu vehículo y evita largas filas en las gasolineras.</p>
+                    <a href="/solicitar-ticket.html" class="btn btn-primary">Solicitar Ticket</a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⛽</div>
+                    <h3>Gestión de Gasolineras</h3>
+                    <p>Para administradores: gestiona el nivel de combustible, disponibilidad y tickets de tu estación.</p>
+                    <a href="/registro-gasolinera.html" class="btn btn-primary">Registrar Gasolinera</a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Historial de Tickets</h3>
+                    <p>Accede a tu historial completo de tickets y visualiza información detallada.</p>
+                    <a href="/mis-tickets.html" class="btn btn-primary">Mis Tickets</a>
+                </div>
+            </div>
+        </section>
 
-    <div class="message-container">
-        <div class="api-status" id="api-status">
-            <h3>Estado de la API</h3>
-            <p id="api-message">Verificando conexión con la API...</p>
-        </div>
-    </div>
-
-    <section id="how-it-works" class="how-it-works">
-        <div class="container">
+        <section id="how-it-works">
             <h2 class="section-title">¿Cómo Funciona?</h2>
             <div class="steps">
                 <div class="step">
                     <div class="step-number">1</div>
                     <h3>Regístrate</h3>
-                    <p>Crea una cuenta como conductor o administrador de gasolinera</p>
+                    <p>Crea una cuenta como conductor o administrador de gasolinera con tus datos personales.</p>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <h3>Encuentra tu gasolinera</h3>
-                    <p>Busca la estación más cercana o tu preferida</p>
+                    <h3>Consulta Disponibilidad</h3>
+                    <p>Visualiza qué gasolineras tienen combustible disponible actualmente.</p>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <h3>Solicita un ticket</h3>
-                    <p>Con un solo clic, reserva tu lugar en la fila</p>
+                    <h3>Solicita un Ticket</h3>
+                    <p>Selecciona una gasolinera disponible y solicita un ticket con los datos de tu vehículo.</p>
                 </div>
                 <div class="step">
                     <div class="step-number">4</div>
-                    <h3>Llega a tiempo</h3>
-                    <p>Dirígete a la gasolinera y muestra tu ticket digital</p>
+                    <h3>Recibe Combustible</h3>
+                    <p>Presenta tu ticket digital en la gasolinera y recibe el combustible sin esperar en largas filas.</p>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <section class="features">
-        <div class="container">
-            <h2 class="section-title">Beneficios</h2>
-            <div class="feature-cards">
-                <div class="feature-card">
-                    <h3>Para Conductores</h3>
-                    <ul>
-                        <li>Ahorra tiempo al evitar filas</li>
-                        <li>Planifica tu visita a la gasolinera</li>
-                        <li>Encuentra estaciones cercanas</li>
-                        <li>Historial de tickets</li>
-                    </ul>
-                </div>
-                <div class="feature-card">
-                    <h3>Para Gasolineras</h3>
-                    <ul>
-                        <li>Mejora la experiencia del cliente</li>
-                        <li>Optimiza el flujo de vehículos</li>
-                        <li>Gestiona fácilmente los tickets</li>
-                        <li>Estadísticas de uso</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
+    </div>
 
     <footer class="main-footer">
         <div class="container">
-            <p>&copy; 2023 QuickGasoline. Todos los derechos reservados.</p>
+            <p>&copy; 2025 QuickGasoline. Todos los derechos reservados.</p>
         </div>
     </footer>
 
@@ -122,22 +321,6 @@
         // Script para verificar la conexión con la API
         document.addEventListener('DOMContentLoaded', async function() {
             const statusElement = document.getElementById('api-message');
-            
-            try {
-                const response = await fetch('/api/health');
-                const data = await response.json();
-                
-                if (data.status === 'ok') {
-                    statusElement.innerHTML = '✅ API funcionando correctamente';
-                    document.querySelector('.api-status').style.borderLeft = '4px solid #2ecc71';
-                } else {
-                    statusElement.innerHTML = '⚠️ API responde pero hay problemas';
-                    document.querySelector('.api-status').style.borderLeft = '4px solid #f39c12';
-                }
-            } catch (error) {
-                statusElement.innerHTML = '❌ Error de conexión con la API: ' + error.message;
-                document.querySelector('.api-status').style.borderLeft = '4px solid #e74c3c';
-            }
         });
     </script>
 </body>

@@ -5,8 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - QuickGasoline</title>
     <link rel="stylesheet" href="/css/styles.css">
-    <!-- Incluir el archivo apiConfig.js antes de cualquier script que lo use -->
     <script src="/js/apiConfig.js"></script>
+    <style>
+        .auth-header {
+            background: linear-gradient(135deg, var(--primary-color), #1a6ca4);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .auth-header .logo a {
+            color: white;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+            color: #777;
+        }
+        
+        .auth-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
     <header class="auth-header">
@@ -43,12 +74,16 @@
 
     <footer class="auth-footer">
         <div class="container">
-            <p>&copy; 2023 QuickGasoline. Todos los derechos reservados.</p>
+            <p>&copy; 2025 QuickGasoline. Todos los derechos reservados.</p>
         </div>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si hay un parámetro de redirección
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectPage = urlParams.get('redirect');
+            
             const form = document.getElementById('login-form');
             const errorMessage = document.getElementById('error-message');
             const submitButton = document.getElementById('submit-btn');
@@ -101,14 +136,24 @@
                         // Guardar la información del usuario en localStorage
                         localStorage.setItem('currentUser', JSON.stringify(result.data));
                         
-                        // Redirigir según el rol
-                        if (result.data.role === 'conductor') {
-                            window.location.href = '/dashboard.html';
-                        } else if (result.data.role === 'gasolinera') {
-                            window.location.href = '/admin-dashboard.html';
-                        } else {
-                            window.location.href = '/dashboard.html'; // Redirigir a dashboard genérico por defecto
-                        }
+                        // Mostrar mensaje de éxito
+                        const notification = document.createElement('div');
+                        notification.className = 'notification notification-success';
+                        notification.textContent = '¡Inicio de sesión exitoso! Redirigiendo...';
+                        document.body.appendChild(notification);
+                        
+                        // Redirigir según el parámetro o el rol
+                        setTimeout(() => {
+                            if (redirectPage) {
+                                window.location.href = '/' + redirectPage;
+                            } else if (result.data.role === 'conductor') {
+                                window.location.href = '/dashboard.html';
+                            } else if (result.data.role === 'gasolinera') {
+                                window.location.href = '/admin-dashboard.html';
+                            } else {
+                                window.location.href = '/dashboard.html';
+                            }
+                        }, 1500);
                     } else {
                         throw new Error(result.message || 'Error en el inicio de sesión');
                     }

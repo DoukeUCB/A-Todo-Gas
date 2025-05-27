@@ -5,7 +5,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 // Importar módulos necesarios
 const { connectToDatabase, getDatabase, closeDatabase } = require('../../src/infrastructure/mongodb/database');
-const gasStationController = require('../../src/adapters/secondary/rest/gasStationController');
+const { createGasStationRouter, GasStationService } = require('../../src/adapters/secondary/rest/gasStationController');
 
 // Mock de environment variables
 process.env.MONGODB_URI = 'mongodb://localhost:27017';
@@ -15,6 +15,8 @@ describe('Prueba de integración para gasolineras disponibles', () => {
   let mongoServer;
   let app;
   let db;
+  let gasStationController; // será el router
+  let gasStationService;
 
   beforeAll(async () => {
     // Crear servidor MongoDB en memoria para pruebas
@@ -24,21 +26,30 @@ describe('Prueba de integración para gasolineras disponibles', () => {
     // Configurar app Express para pruebas
     app = express();
     app.use(express.json());
-    app.use('/api/stations', gasStationController);
     
     // Conectar a la base de datos
     await connectToDatabase();
     db = await getDatabase();
+
+    // Inicializar el servicio y el router correctamente
+    gasStationService = new GasStationService();
+    await gasStationService.initialize();
+    gasStationController = createGasStationRouter(gasStationService);
+    app.use('/api/stations', gasStationController);
     
     // Insertar datos de prueba
     await setupTestData(db);
-  });
+  }, 10000); // Aumentar el tiempo de espera si es necesario
 
   afterAll(async () => {
     await closeDatabase();
     if (mongoServer) {
       await mongoServer.stop();
     }
+  });
+
+  beforeAll(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {}); // Silencia todos los errores
   });
 
   test('GET /api/stations/available debe devolver solo gasolineras disponibles', async () => {
@@ -62,6 +73,27 @@ describe('Prueba de integración para gasolineras disponibles', () => {
     unavailableStationIds.forEach(id => {
       expect(returnedIds).not.toContain(id);
     });
+  });
+
+  test('GET /api/stations/available debe devolver un array vacío si no hay estaciones disponibles', async () => {
+    // Elimina todas las estaciones
+    await db.collection('gasStations').deleteMany({});
+    const response = await request(app).get('/api/stations/available');
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(Array.isArray(response.body.data)).toBe(true);
+    expect(response.body.data.length).toBe(0);
+  });
+
+  test('GET /api/stations/available debe manejar error de base de datos', async () => {
+    // Simula error cerrando la base de datos antes de la petición
+    await closeDatabase();
+    const response = await request(app).get('/api/stations/available');
+    expect(response.status).toBe(500);
+    expect(response.body.success).toBe(false);
+    expect(response.body.message).toBeDefined();
+    // Reabrir para no afectar otros tests
+    await connectToDatabase();
   });
 
   // Función para configurar datos de prueba

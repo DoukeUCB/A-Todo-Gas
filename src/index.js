@@ -59,6 +59,10 @@ async function startApp() {
     const gasStationController = require('./adapters/secondary/rest/gasStationController');
     app.use('/api/stations', gasStationController);
     
+    // Configurar controlador de tickets
+    const ticketController = require('./adapters/secondary/rest/ticketController');
+    app.use('/api/tickets', ticketController);
+    
     // Ruta de prueba simple para verificar que la API funciona
     app.get('/api/health', (req, res) => {
       res.json({ status: 'ok', message: 'API funcionando correctamente', env: process.env.NODE_ENV });

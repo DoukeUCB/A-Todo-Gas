@@ -2,214 +2,380 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Registrar Ticket</title>
+  <title>Registrar Ticket - QuickGasoline</title>
   <script src="/js/apiConfig.js"></script>
-  <link rel="stylesheet" href="/css/styles2.css">
+  <link rel="stylesheet" href="/css/styles.css">
   <style>
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #eee;
-      padding: 12px 24px;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 9999;
-      font-weight: bold;
-      transition: opacity 0.5s;
+    .ticket-form-container {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-    .notification-success { color: green; border: 1px solid green; }
-    .notification-error { color: red; border: 1px solid red; }
-    .notification-hide { opacity: 0; }
-    /* Estilos para la barra de navegación */
-    nav {
-      width: 100%;
-      background: #2980b9;
-      color: #fff;
+
+    .ticket-preview {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ticket-preview::before {
+      content: 'Vista Previa';
+      position: absolute;
+      top: 10px;
+      right: -30px;
+      background: #e74c3c;
+      color: white;
+      padding: 5px 40px;
+      font-size: 0.8rem;
+      transform: rotate(45deg);
+    }
+
+    .station-status {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-left: 0.5rem;
+    }
+    
+    .station-status.available {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .station-status.unavailable {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    /* Estilos para el modal */
+    .modal {
       position: fixed;
       top: 0;
       left: 0;
-      z-index: 1000;
-      height: 54px;
-      display: flex;
-      align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    }
-    nav .container {
-      max-width: 1200px;
       width: 100%;
-      margin: 0 auto;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
       display: flex;
+      justify-content: center;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
     }
-    nav a {
-      color: #fff;
-      text-decoration: none;
-      margin-right: 18px;
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 8px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
-    nav a:last-child {
-      margin-right: 0;
+    
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5rem;
+      cursor: pointer;
     }
-    h1 {
-      margin-top: 70px;
+    
+    .ticket-details {
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+      padding: 1rem 0;
+      margin: 1rem 0;
+    }
+    
+    .ticket-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
     }
   </style>
 </head>
 <body>
-  <!-- Navbar fija superior -->
-  <nav>
+  <header class="app-header">
     <div class="container">
-      <a href="/index.html" style="font-size:1.3em;font-weight:bold;letter-spacing:1px;">QuickGasoline</a>
-      <div id="nav-user-info">
-        <!-- Aquí se mostrará el nombre del usuario y el botón de cerrar sesión -->
+      <div class="logo">
+        <a href="/">QuickGasoline</a>
+      </div>
+      <nav class="main-nav">
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/gasolineras-disponibles.html">Gasolineras</a>
+        <a href="/register-ticket.html" class="active">Registrar Ticket</a>
+        <a href="/mis-tickets.html">Mis Tickets</a>
+      </nav>
+      <div class="user-info" id="user-info">
+        <!-- Se llenará dinámicamente -->
       </div>
     </div>
-  </nav>
+  </header>
 
-  <h1>Registrar Ticket</h1>
-  <form id="ticketForm">
-    <label>CI: <input type="text" name="ci" required></label><br>
-    <label>Matrícula: <input type="text" name="plate" required></label><br>
-    <label>Gasolinera:
-      <select name="stationSelect" id="stationSelect" required>
-        <option value="">Seleccione una gasolinera</option>
-      </select>
-    </label><br>
-    <!-- Campos ocultos para ID y nombre de estación -->
-    <input type="hidden" name="stationId">
-    <input type="hidden" name="stationName">
-    <button type="submit">Registrar</button>
-  </form>
-  <div id="resultado"></div>
-
-  <!-- Modal para el ticket -->
-  <div id="ticketModal" class="modal" style="display:none;">
+  <div class="container">
+    <div class="ticket-form-container">
+      <h1>Registrar Nuevo Ticket</h1>
+      <p>Complete el formulario para generar un ticket de combustible</p>
+      
+      <form id="ticketForm">
+        <div class="form-group">
+          <label for="ci">Carnet de Identidad (CI)</label>
+          <input type="text" id="ci" name="ci" required pattern="[0-9]+" placeholder="Ej: 12345678">
+          <small>Ingrese solo números</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="plate">Matrícula del Vehículo</label>
+          <input type="text" id="plate" name="plate" required pattern="[A-Z0-9-]{1,10}" placeholder="Ej: ABC-123">
+          <small>Formato: letras mayúsculas, números y guiones</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="requestedLiters">Litros Solicitados</label>
+          <input type="number" id="requestedLiters" name="requestedLiters" required min="1" max="100" step="0.1" placeholder="Ej: 20.5">
+          <small>Mínimo 1 litro, máximo 100 litros</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="stationSelect">Gasolinera</label>
+          <select id="stationSelect" name="stationSelect" required>
+            <option value="">Seleccione una gasolinera</option>
+            <!-- Las opciones se cargarán dinámicamente -->
+          </select>
+        </div>
+        
+        <!-- Campos ocultos para información adicional -->
+        <input type="hidden" name="stationId" id="stationId">
+        <input type="hidden" name="stationName" id="stationName">
+        
+        <div class="ticket-preview" id="ticketPreview" style="display: none;">
+          <h3>Vista Previa del Ticket</h3>
+          <p><strong>CI:</strong> <span id="preview-ci"></span></p>
+          <p><strong>Matrícula:</strong> <span id="preview-plate"></span></p>
+          <p><strong>Gasolinera:</strong> <span id="preview-station"></span></p>
+          <p><strong>Litros:</strong> <span id="preview-liters"></span></p>
+        </div>
+        
+        <div class="form-group" style="margin-top: 1.5rem;">
+          <button type="submit" class="btn btn-primary" id="submitBtn">Generar Ticket</button>
+          <a href="/dashboard.html" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal para el ticket generado -->
+  <div id="ticketModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-btn" id="closeTicketModal">&times;</span>
-      <div id="ticketContent"></div>
+      <h2>Ticket Generado Exitosamente</h2>
+      <div class="ticket-details" id="ticketContent">
+        <!-- El contenido del ticket se cargará dinámicamente -->
+      </div>
+      <div class="ticket-actions">
+        <button class="btn btn-primary" id="downloadTicket">Descargar PDF</button>
+        <button class="btn btn-secondary" id="closeTicketBtn">Cerrar</button>
+      </div>
     </div>
   </div>
 
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 QuickGasoline. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
   <script>
-    // Notificación estilo registro gasolinera
-    function showNotification(type, message) {
-      const notification = document.createElement('div');
-      notification.className = `notification notification-${type}`;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        notification.classList.add('notification-hide');
-        setTimeout(() => notification.remove(), 500);
-      }, 3500);
-    }
-
-    // Cargar gasolineras usando API_CONFIG
-    async function cargarGasolineras() {
-      try {
-        const data = await API_CONFIG.fetchAPI('/api/stations');
-        if (data.success && Array.isArray(data.data)) {
-          const select = document.getElementById('stationSelect');
-          data.data.forEach(station => {
-            const option = document.createElement('option');
-            option.value = station.id || station._id;
-            option.textContent = station.name;
-            option.dataset.stationName = station.name;
-            select.appendChild(option);
-          });
-        }
-      } catch (e) {
-        showNotification('error', 'Error al cargar gasolineras');
-      }
-    }
-
-    cargarGasolineras();
-
-    // Actualiza los campos ocultos al seleccionar una estación
-    document.getElementById('stationSelect').addEventListener('change', function() {
-      const selectedOption = this.options[this.selectedIndex];
-      document.querySelector('input[name="stationId"]').value = selectedOption.value;
-      document.querySelector('input[name="stationName"]').value = selectedOption.dataset.stationName || '';
-    });
-
-    document.getElementById('ticketForm').onsubmit = async function(e) {
-      e.preventDefault();
-      const form = e.target;
-      const submitBtn = form.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Generando ticket...";
-
-      // Validar selección de gasolinera
-      if (!form.stationId.value) {
-        showNotification('error', 'Seleccione una gasolinera');
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Registrar";
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar si hay un usuario logueado
+      const userInfo = document.getElementById('user-info');
+      const currentUserData = localStorage.getItem('currentUser');
+      
+      if (!currentUserData) {
+        // Redirigir al login si no hay usuario
+        window.location.href = '/login.html?redirect=register-ticket.html';
         return;
       }
-
-      // Obtener y actualizar el número de ticket secuencial desde localStorage
-      let ticketNumber = parseInt(localStorage.getItem('ticketNumber') || '1', 10);
-      localStorage.setItem('ticketNumber', (ticketNumber + 1).toString());
-
-      // Preparar datos para el ticket
-      const ticketData = {
-        ci: form.ci.value.trim(),
-        plate: form.plate.value.trim().toUpperCase(),
-        stationId: form.stationId.value,
-        stationName: form.stationName.value,
-        ticketNumber
-      };
-
-      // Mostrar el ticket en el modal
-      const ticketContent = document.getElementById('ticketContent');
-      ticketContent.innerHTML = `
-        <h2>Ticket de Venta</h2>
-        <p><strong>N° Ticket:</strong> ${ticketData.ticketNumber}</p>
-        <p><strong>CI:</strong> ${ticketData.ci}</p>
-        <p><strong>Matrícula:</strong> ${ticketData.plate}</p>
-        <p><strong>Gasolinera:</strong> ${ticketData.stationName}</p>
-        <p><strong>ID Gasolinera:</strong> ${ticketData.stationId}</p>
-        <p><em>Fecha:</em> ${new Date().toLocaleString()}</p>
+      
+      const currentUser = JSON.parse(currentUserData);
+      
+      // Mostrar información del usuario
+      userInfo.innerHTML = `
+        <span>Hola, ${currentUser.fullName}</span>
+        <a href="#" id="logout-btn">Cerrar Sesión</a>
       `;
-      document.getElementById('ticketModal').style.display = 'block';
-      showNotification('success', 'Ticket generado correctamente');
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Registrar";
-    };
-
-    // Cerrar el modal
-    document.getElementById('closeTicketModal').onclick = function() {
-      document.getElementById('ticketModal').style.display = 'none';
-    };
-    // Cerrar modal al hacer click fuera del contenido
-    window.onclick = function(event) {
-      const modal = document.getElementById('ticketModal');
-      if (event.target === modal) {
-        modal.style.display = 'none';
-      }
-    };
-
-    // Navbar: mostrar usuario, dashboard y cerrar sesión
-    document.addEventListener('DOMContentLoaded', function() {
-      const navUserInfo = document.getElementById('nav-user-info');
-      const currentUserData = localStorage.getItem('currentUser');
-      if (currentUserData) {
-        const currentUser = JSON.parse(currentUserData);
-        navUserInfo.innerHTML = `
-          <span style="margin-right:16px;">${currentUser.fullName}</span>
-          <a href="/dashboard.html" id="dashboard-btn" style="color:#fff;text-decoration:none;background:#27ae60;padding:6px 14px;border-radius:4px;font-weight:500;margin-right:10px;">Ir al Dashboard</a>
-          <a href="#" id="logout-btn" style="color:#fff;text-decoration:none;background:#e74c3c;padding:6px 14px;border-radius:4px;font-weight:500;">Cerrar Sesión</a>
-        `;
-        document.getElementById('logout-btn').onclick = function(e) {
-          e.preventDefault();
-          localStorage.removeItem('currentUser');
-          window.location.href = '/login.html';
-        };
-      } else {
-        // Si no hay usuario, redirigir a login
+      
+      // Configurar botón de logout
+      document.getElementById('logout-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        localStorage.removeItem('currentUser');
         window.location.href = '/login.html';
+      });
+      
+      // Cargar gasolineras disponibles
+      async function cargarGasolinerasDisponibles() {
+        try {
+          const response = await API_CONFIG.fetchAPI('/api/stations/available');
+          
+          if (response.success && Array.isArray(response.data)) {
+            const select = document.getElementById('stationSelect');
+            
+            if (response.data.length === 0) {
+              select.innerHTML = '<option value="">No hay gasolineras disponibles</option>';
+              select.disabled = true;
+              document.getElementById('submitBtn').disabled = true;
+              showNotification('error', 'No hay gasolineras disponibles actualmente');
+              return;
+            }
+            
+            response.data.forEach(station => {
+              const option = document.createElement('option');
+              option.value = station.id;
+              option.textContent = `${station.name} - ${station.currentLevel.toFixed(1)} litros`;
+              option.dataset.stationName = station.name;
+              option.dataset.currentLevel = station.currentLevel;
+              select.appendChild(option);
+            });
+          }
+        } catch (error) {
+          console.error('Error al cargar gasolineras:', error);
+          showNotification('error', 'Error al cargar gasolineras disponibles');
+        }
       }
+      
+      cargarGasolinerasDisponibles();
+      
+      // Actualizar campos ocultos y vista previa al seleccionar una estación
+      document.getElementById('stationSelect').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+          document.getElementById('stationId').value = selectedOption.value;
+          document.getElementById('stationName').value = selectedOption.dataset.stationName;
+          updateTicketPreview();
+        }
+      });
+      
+      // Actualizar vista previa cuando se cambian los campos
+      const formInputs = document.querySelectorAll('#ticketForm input, #ticketForm select');
+      formInputs.forEach(input => {
+        input.addEventListener('input', updateTicketPreview);
+      });
+      
+      // Función para actualizar la vista previa del ticket
+      function updateTicketPreview() {
+        const ci = document.getElementById('ci').value;
+        const plate = document.getElementById('plate').value;
+        const liters = document.getElementById('requestedLiters').value;
+        const stationSelect = document.getElementById('stationSelect');
+        const selectedOption = stationSelect.options[stationSelect.selectedIndex];
+        const stationName = selectedOption.dataset?.stationName || '';
+        
+        if (ci && plate && liters && stationName) {
+          document.getElementById('preview-ci').textContent = ci;
+          document.getElementById('preview-plate').textContent = plate.toUpperCase();
+          document.getElementById('preview-liters').textContent = `${liters} litros`;
+          document.getElementById('preview-station').textContent = stationName;
+          document.getElementById('ticketPreview').style.display = 'block';
+        } else {
+          document.getElementById('ticketPreview').style.display = 'none';
+        }
+      }
+      
+      // Manejar envío del formulario
+      document.getElementById('ticketForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Generando...';
+        
+        try {
+          // Recoger datos del formulario
+          const ticketData = {
+            ci: document.getElementById('ci').value,
+            plate: document.getElementById('plate').value.toUpperCase(),
+            stationId: document.getElementById('stationId').value,
+            stationName: document.getElementById('stationName').value,
+            requestedLiters: parseFloat(document.getElementById('requestedLiters').value)
+          };
+          
+          // Validar que se haya seleccionado una gasolinera
+          if (!ticketData.stationId || !ticketData.stationName) {
+            throw new Error('Debe seleccionar una gasolinera válida');
+          }
+          
+          // Enviar solicitud al backend
+          const response = await API_CONFIG.fetchAPI('/api/tickets', {
+            method: 'POST',
+            body: JSON.stringify(ticketData)
+          });
+          
+          if (response.success) {
+            const ticket = response.data;
+            
+            // Mostrar el ticket en el modal
+            document.getElementById('ticketContent').innerHTML = `
+              <p><strong>N° Ticket:</strong> ${ticket.ticketNumber}</p>
+              <p><strong>CI:</strong> ${ticket.ci}</p>
+              <p><strong>Matrícula:</strong> ${ticket.plate}</p>
+              <p><strong>Gasolinera:</strong> ${ticket.stationName}</p>
+              <p><strong>Litros:</strong> ${ticket.requestedLiters} litros</p>
+              <p><strong>Fecha:</strong> ${new Date(ticket.createdAt).toLocaleString()}</p>
+            `;
+            
+            document.getElementById('ticketModal').style.display = 'block';
+            showNotification('success', 'Ticket generado correctamente');
+            
+            // Resetear el formulario
+            this.reset();
+            document.getElementById('ticketPreview').style.display = 'none';
+          } else {
+            throw new Error(response.message || 'Error al crear el ticket');
+          }
+        } catch (error) {
+          console.error('Error al generar ticket:', error);
+          showNotification('error', error.message || 'Error al generar el ticket');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Generar Ticket';
+        }
+      });
+      
+      // Cerrar el modal
+      document.getElementById('closeTicketModal').addEventListener('click', function() {
+        document.getElementById('ticketModal').style.display = 'none';
+      });
+      
+      document.getElementById('closeTicketBtn').addEventListener('click', function() {
+        document.getElementById('ticketModal').style.display = 'none';
+      });
+      
+      // Función para mostrar notificaciones
+      function showNotification(type, message) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.classList.add('notification-hide');
+          setTimeout(() => notification.remove(), 500);
+        }, 5000);
+      }
+      
+      // Simular descarga de PDF (para fines de demostración)
+      document.getElementById('downloadTicket').addEventListener('click', function() {
+        showNotification('info', 'Funcionalidad de descarga en desarrollo');
+      });
     });
   </script>
 </body>

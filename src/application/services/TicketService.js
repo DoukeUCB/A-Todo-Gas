@@ -32,7 +32,7 @@ class TicketService {
       }
       
       // Incrementar el contador de tickets para esta gasolinera
-      const ticketNumber = gasStation.ticketCount + 1;
+      const ticketNumber = parseInt(gasStation.ticketCount || 0) + 1;
       
       // Actualizar el contador en la gasolinera
       await this.gasStationRepository.update(
@@ -40,19 +40,20 @@ class TicketService {
         { ticketCount: ticketNumber }
       );
       
-      // Crear el objeto ticket con todos los campos requeridos por el esquema
+      // Validar y convertir tipos de datos para cumplir con el esquema MongoDB
+      // Asegurarnos que sean los tipos exactos que MongoDB espera
       const ticket = {
         _id: ticketId,
-        ci: ticketData.ci,
-        plate: ticketData.plate.toUpperCase(),
-        ticketNumber: ticketNumber,
-        stationId: ticketData.stationId,
-        stationName: ticketData.stationName,
-        requestedLiters: parseFloat(ticketData.requestedLiters) || 0,
-        createdAt: new Date()
+        ci: String(ticketData.ci),
+        plate: String(ticketData.plate).toUpperCase(),
+        ticketNumber: Number.isInteger(ticketNumber) ? ticketNumber : Math.floor(ticketNumber), // Asegurar que sea int
+        stationId: String(ticketData.stationId),
+        stationName: String(ticketData.stationName),
+        requestedLiters: parseFloat(ticketData.requestedLiters || 0), // Asegurar que sea double
+        createdAt: new Date() // Asegurar que sea un objeto Date
       };
       
-      console.log('Creando ticket con datos:', ticket);
+      console.log('Creando ticket con datos (después de conversión):', ticket);
       
       // Guardar el ticket en la base de datos
       const createdTicket = await this.ticketRepository.create(ticket);

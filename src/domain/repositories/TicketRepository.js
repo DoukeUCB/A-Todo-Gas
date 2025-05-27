@@ -8,11 +8,9 @@ class TicketRepository {
   async initialize() {
     try {
       const db = getDatabase();
-      // Asegurarnos de que db es un objeto válido
-      if (!db || typeof db.collection !== 'function') {
-        throw new Error('Objeto de base de datos inválido o no inicializado correctamente');
+      if (!db) {
+        throw new Error('La base de datos no está disponible');
       }
-      
       this.collection = db.collection('tickets');
       console.log('Repositorio de tickets inicializado correctamente');
     } catch (error) {
@@ -27,10 +25,38 @@ class TicketRepository {
         throw new Error('Repositorio no inicializado');
       }
       
+      // Validar que el ticket tenga todos los campos requeridos
+      const requiredFields = ['_id', 'ci', 'plate', 'ticketNumber', 'stationId', 'stationName', 'requestedLiters', 'createdAt'];
+      for (const field of requiredFields) {
+        if (ticket[field] === undefined) {
+          throw new Error(`Campo requerido faltante: ${field}`);
+        }
+      }
+      
+      // Validar tipos de datos
+      if (typeof ticket.ticketNumber !== 'number' || !Number.isInteger(ticket.ticketNumber)) {
+        console.error('ticketNumber no es un entero:', ticket.ticketNumber);
+        ticket.ticketNumber = Math.floor(Number(ticket.ticketNumber));
+      }
+      
+      if (typeof ticket.requestedLiters !== 'number') {
+        console.error('requestedLiters no es un número:', ticket.requestedLiters);
+        ticket.requestedLiters = parseFloat(ticket.requestedLiters);
+      }
+      
+      if (!(ticket.createdAt instanceof Date)) {
+        console.error('createdAt no es un objeto Date:', ticket.createdAt);
+        ticket.createdAt = new Date(ticket.createdAt);
+      }
+      
+      console.log('Insertando ticket en MongoDB:', JSON.stringify(ticket, null, 2));
+      
       const result = await this.collection.insertOne(ticket);
       if (!result.acknowledged) {
         throw new Error('Error al insertar el ticket en la base de datos');
       }
+      
+      console.log('Ticket insertado correctamente con ID:', ticket._id);
       return ticket;
     } catch (error) {
       console.error('Error al crear ticket en repositorio:', error);

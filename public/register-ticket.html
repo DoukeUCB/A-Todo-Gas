@@ -110,7 +110,7 @@
         <a href="/">QuickGasoline</a>
       </div>
       <nav class="main-nav">
-        <a href="/dashboard.html">Dashboard</a>
+        <a href="/index.html">Inicio</a>
         <a href="/gasolineras-disponibles.html">Gasolineras</a>
         <a href="/register-ticket.html" class="active">Registrar Ticket</a>
         <a href="/mis-tickets.html">Mis Tickets</a>
@@ -221,14 +221,18 @@
         window.location.href = '/login.html';
       });
       
+      // Leer parámetros de la URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const preselectStationId = urlParams.get('stationId');
+      const preselectStationName = urlParams.get('stationName');
+
       // Cargar gasolineras disponibles
       async function cargarGasolinerasDisponibles() {
         try {
           const response = await API_CONFIG.fetchAPI('/api/stations/available');
-          
           if (response.success && Array.isArray(response.data)) {
             const select = document.getElementById('stationSelect');
-            
+            select.innerHTML = '<option value="">Seleccione una gasolinera</option>';
             if (response.data.length === 0) {
               select.innerHTML = '<option value="">No hay gasolineras disponibles</option>';
               select.disabled = true;
@@ -236,15 +240,24 @@
               showNotification('error', 'No hay gasolineras disponibles actualmente');
               return;
             }
-            
             response.data.forEach(station => {
               const option = document.createElement('option');
               option.value = station.id;
               option.textContent = `${station.name} - ${station.currentLevel.toFixed(1)} litros`;
               option.dataset.stationName = station.name;
               option.dataset.currentLevel = station.currentLevel;
+              // Selecciona si coincide con el parámetro
+              if (preselectStationId && station.id === preselectStationId) {
+                option.selected = true;
+              }
               select.appendChild(option);
             });
+            // Si se seleccionó por parámetro, actualiza los campos ocultos y la vista previa
+            if (preselectStationId) {
+              document.getElementById('stationId').value = preselectStationId;
+              document.getElementById('stationName').value = preselectStationName ? decodeURIComponent(preselectStationName) : '';
+              updateTicketPreview();
+            }
           }
         } catch (error) {
           console.error('Error al cargar gasolineras:', error);

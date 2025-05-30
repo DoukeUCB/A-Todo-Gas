@@ -135,17 +135,22 @@
                     if (result.success) {
                         // Guardar la información del usuario en localStorage
                         localStorage.setItem('currentUser', JSON.stringify(result.data));
-                        
+
                         // Mostrar mensaje de éxito
                         const notification = document.createElement('div');
                         notification.className = 'notification notification-success';
                         notification.textContent = '¡Inicio de sesión exitoso! Redirigiendo...';
                         document.body.appendChild(notification);
-                        
+
                         // Redirigir según el parámetro o el rol
                         setTimeout(() => {
                             if (redirectPage) {
-                                window.location.href = '/' + redirectPage;
+                                // Corregido: si redirectPage ya contiene ".html", no agregues "/"
+                                if (redirectPage.endsWith('.html')) {
+                                    window.location.href = '/' + redirectPage;
+                                } else {
+                                    window.location.href = '/' + redirectPage + '.html';
+                                }
                             } else if (result.data.role === 'conductor') {
                                 window.location.href = '/dashboard.html';
                             } else if (result.data.role === 'gasolinera') {

@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const { connectToDatabase, closeDatabase } = require('./infrastructure/mongodb/database');
+const { createGasStationRouter, GasStationService } = require('./adapters/secondary/rest/gasStationController');
 
 // Punto de entrada de la aplicación del servidor
 async function startApp() {
@@ -56,8 +57,10 @@ async function startApp() {
     app.use('/api/users', userController);
     
     // Configurar controlador de gasolineras
-    const gasStationController = require('./adapters/secondary/rest/gasStationController');
-    app.use('/api/stations', gasStationController);
+    const gasStationService = new GasStationService();
+    await gasStationService.initialize();
+    const gasStationRouter = createGasStationRouter(gasStationService);
+    app.use('/api/stations', gasStationRouter);
     
     // Configurar controlador de tickets
     const ticketController = require('./adapters/secondary/rest/ticketController');

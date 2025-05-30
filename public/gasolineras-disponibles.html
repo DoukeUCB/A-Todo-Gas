@@ -131,7 +131,7 @@
                 <a href="/">QuickGasoline</a>
             </div>
             <nav class="main-nav">
-                <a href="/dashboard.html">Dashboard</a>
+                <a href="/index.html">Inicio</a>
                 <a href="/gasolineras-disponibles.html" class="active">Gasolineras Disponibles</a>
                 <a href="/mis-tickets.html">Mis Tickets</a>
             </nav>
@@ -171,8 +171,9 @@
             const userInfo = document.getElementById('user-info');
             const currentUserData = localStorage.getItem('currentUser');
             
+            // Cambia aquí: si ya hay usuario, NO redirigir, solo mostrar info
             if (!currentUserData) {
-                // Redirigir al login si no hay usuario, pero guardar la página actual para redirección posterior
+                // Redirigir solo si NO hay usuario
                 window.location.href = '/login.html?redirect=gasolineras-disponibles.html';
                 return;
             }
@@ -292,6 +293,8 @@
                             const MAX_FUEL = 5000; // Litros
                             const fuelPercentage = Math.min(100, (station.currentLevel / MAX_FUEL) * 100);
                             
+                            // Codifica el nombre para la URL
+                            const encodedStationName = encodeURIComponent(station.name);
                             return `
                                 <div class="station-card">
                                     <div class="station-header">
@@ -307,7 +310,7 @@
                                         </div>
                                     </div>
                                     <div class="station-actions">
-                                        <a href="/solicitar-ticket.html?stationId=${station.id}" class="btn btn-primary">
+                                        <a href="/register-ticket.html?stationId=${station.id}&stationName=${encodedStationName}" class="btn btn-primary">
                                             Solicitar Ticket
                                         </a>
                                     </div>

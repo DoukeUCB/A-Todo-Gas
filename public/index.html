@@ -230,9 +230,12 @@
                 <h1>QuickGasoline</h1>
                 <p>Sistema inteligente para gestión de combustible</p>
             </div>
-            <nav class="main-menu">
-                <a href="/login.html" class="btn btn-primary">Iniciar Sesión</a>
-                <a href="/registro.html" class="btn">Registrarse</a>
+            <nav class="main-menu" id="main-menu">
+                <a href="/login.html" class="btn btn-primary" id="login-btn">Iniciar Sesión</a>
+                <a href="/registro.html" class="btn" id="register-btn">Registrarse</a>
+                <!-- Botones para usuarios logueados -->
+                <a href="/dashboard.html" class="btn btn-primary" id="dashboard-btn" style="display:none;">Ir al Panel</a>
+                <a href="#" class="btn btn-secondary" id="logout-btn" style="display:none;">Cerrar Sesión</a>
             </nav>
         </div>
     </header>
@@ -258,21 +261,21 @@
                     <div class="feature-icon">🔍</div>
                     <h3>Gasolineras Disponibles</h3>
                     <p>Visualiza en tiempo real qué gasolineras tienen combustible disponible, evitando viajes innecesarios.</p>
-                    <a href="/login.html?redirect=gasolineras-disponibles.html" class="btn btn-primary">Ver Gasolineras</a>
+                    <a href="#" class="btn btn-primary" id="ver-gasolineras-btn">Ver Gasolineras</a>
                 </div>
                 
                 <div class="feature-card">
                     <div class="feature-icon">🎫</div>
                     <h3>Tickets Digitales</h3>
                     <p>Solicita tickets digitales para tu vehículo y evita largas filas en las gasolineras.</p>
-                    <a href="/solicitar-ticket.html" class="btn btn-primary">Solicitar Ticket</a>
+                    <a href="/register-ticket.html" class="btn btn-primary">Solicitar Ticket</a>
                 </div>
                 
                 <div class="feature-card">
                     <div class="feature-icon">⛽</div>
                     <h3>Gestión de Gasolineras</h3>
                     <p>Para administradores: gestiona el nivel de combustible, disponibilidad y tickets de tu estación.</p>
-                    <a href="/registro-gasolinera.html" class="btn btn-primary">Registrar Gasolinera</a>
+                    <a href="/registro-gasolinera.html" class="btn btn-primary">Registrar Gasolineria</a>
                 </div>
                 
                 <div class="feature-card">
@@ -318,9 +321,64 @@
     </footer>
 
     <script>
-        // Script para verificar la conexión con la API
-        document.addEventListener('DOMContentLoaded', async function() {
-            const statusElement = document.getElementById('api-message');
+        // Script para verificar la conexión con la API y gestionar sesión
+        document.addEventListener('DOMContentLoaded', function() {
+            // ...API status code si lo tienes...
+            // Gestión de sesión
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const dashboardBtn = document.getElementById('dashboard-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            // Verifica si hay usuario en localStorage
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            if (currentUser) {
+                // Oculta login/registro, muestra dashboard/logout
+                loginBtn.style.display = 'none';
+                registerBtn.style.display = 'none';
+                dashboardBtn.style.display = '';
+                logoutBtn.style.display = '';
+
+                // Redirige según rol si hace clic en dashboard
+                dashboardBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (currentUser.role === 'conductor') {
+                        window.location.href = '/dashboard.html';
+                    } else if (currentUser.role === 'gasolinera') {
+                        window.location.href = '/admin-dashboard.html';
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
+                });
+
+                // Cerrar sesión
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('currentUser');
+                    window.location.reload();
+                });
+            } else {
+                // Usuario no logueado: muestra login/registro, oculta dashboard/logout
+                loginBtn.style.display = '';
+                registerBtn.style.display = '';
+                dashboardBtn.style.display = 'none';
+                logoutBtn.style.display = 'none';
+            }
+
+            // Lógica para el botón "Ver Gasolineras"
+            const verGasolinerasBtn = document.getElementById('ver-gasolineras-btn');
+            if (verGasolinerasBtn) {
+                verGasolinerasBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                    if (currentUser) {
+                        window.location.href = '/gasolineras-disponibles.html';
+                    } else {
+                        window.location.href = '/login.html?redirect=gasolineras-disponibles.html';
+                    }
+                });
+            }
         });
     </script>
 </body>

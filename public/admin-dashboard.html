@@ -69,7 +69,7 @@
     <div class="admin-main">
         <h1>Bienvenido al panel de Gasolinera</h1>
         <p>Este es el dashboard para administradores.</p>
-        <a href="/dashboard.html">Ir al dashboard general</a>
+        <a href="/index.html">Ir al inicio</a>
         <button onclick="window.location.href='/registro-gasolinera.html'">Registrar nueva gasolinera</button>
     </div>
     <script>
@@ -81,7 +81,7 @@
                 const currentUser = JSON.parse(currentUserData);
                 navUserInfo.innerHTML = `
                     <span style="margin-right:16px;">${currentUser.fullName}</span>
-                    <a href="/dashboard.html" id="dashboard-btn" style="color:#fff;text-decoration:none;background:#27ae60;padding:6px 14px;border-radius:4px;font-weight:500;margin-right:10px;">Ir al Dashboard</a>
+                    <a href="/index.html" id="dashboard-btn" style="color:#fff;text-decoration:none;background:#27ae60;padding:6px 14px;border-radius:4px;font-weight:500;margin-right:10px;">Ir al Inicio</a>
                     <a href="#" id="logout-btn" style="color:#fff;text-decoration:none;background:#e74c3c;padding:6px 14px;border-radius:4px;font-weight:500;">Cerrar Sesión</a>
                 `;
                 document.getElementById('logout-btn').onclick = function(e) {
